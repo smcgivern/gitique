@@ -1,0 +1,13 @@
+{
+  "manifest_version": 2,
+  "name": "Gitique",
+  "description": "Make GitHub code review better",
+  "version": "0.1",
+  "permissions": [
+    "https://github.com/*"
+  ],
+  "background": {
+    "scripts": ["background.js"],
+    "persistent": false
+  }
+}

@@ -1,0 +1,7 @@
+.gitique-enabled .gitique-hidden {
+  display: none;
+}
+
+.gitique-buttons {
+  margin-right: 10px;
+}

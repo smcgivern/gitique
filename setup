@@ -1,0 +1,5 @@
+#!/bin/sh
+
+[ ! -f cljs.jar ] && wget https://github.com/clojure/clojurescript/releases/download/r3196/cljs.jar
+
+java -cp cljs.jar:src clojure.main build.clj

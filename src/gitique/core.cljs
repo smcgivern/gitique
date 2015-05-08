@@ -153,9 +153,8 @@
 
 (defn- add-icon! [element]
   (let [parent (.-parentElement (.-parentElement element))
-        plusIcon (js/document.createElement "span")]
-    (.setAttribute plusIcon "class" "octicon octicon-diff-added")
-    (.insertBefore parent plusIcon (.-firstChild parent))))
+        plus-icon (dom/createDom "span" #js["octicon" "octicon-diff-added"])]
+    (.insertBefore parent plus-icon (.-firstChild parent))))
 
 (defn- add-icons! [commit-block]
   (dorun (map add-icon! (.querySelectorAll (:element commit-block) ".commit-id"))))

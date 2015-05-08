@@ -10,3 +10,8 @@ A Chrome extension to make GitHub code review better.
    watch for changes in the source.
 3. Go to [chrome://extensions/](chrome://extensions/) and choose to load an unpacked
    extension, then point to the cloned repo.
+
+### Production builds
+
+1. Run `./build prod`. This will use advanced optimizations and no watch the source files.
+2. Update [`dist/manifest.json`](dist/manifest.json) for the new version.

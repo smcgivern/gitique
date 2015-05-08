@@ -1,9 +1,8 @@
 {
   "manifest_version": 2,
-  "name": "Gitique (development mode)",
+  "name": "Gitique",
   "description": "Make GitHub code review better",
   "version": "0.1",
-  "version_name": "development",
   "permissions": [
     "https://github.com/*"
   ],

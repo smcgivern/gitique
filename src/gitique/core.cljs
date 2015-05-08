@@ -22,7 +22,9 @@
   (last (string/split (.getAttribute (.querySelector element ".commit-id") "href") "/")))
 
 (defn- commit-shas [item]
-  (map commit-sha (.querySelectorAll (:element item) ".commit")))
+  (if-let [element (:element item)]
+    (map commit-sha (.querySelectorAll (:element item) ".commit"))
+    []))
 
 (defn- item-type [creator item]
   (let [classes (.-classList item)]
@@ -161,17 +163,24 @@
 
 (defn- maybe-show-new [repo]
   (let [{:keys [last-reviewed-commit new-commits]} (commit-info)]
-    (if last-reviewed-commit
+    (if (and last-reviewed-commit (not-empty new-commits))
       (do
         (get-new-commits! repo (-> last-reviewed-commit commit-shas last) (-> new-commits last commit-shas last))
         (dorun (map add-icons! new-commits)))
       (log "No unreviewed commits"))))
 
-(defn ^:export main []
+(defn- main []
   (let [components (string/split (aget js/window "location" "pathname") "/")
         repo (str (get components 1) "/" (get components 2))]
     (if (= (get components 3) "pull")
       (maybe-show-new repo)
       (log (str "Not a pull request: " components)))))
 
-(main)
+(defn- watch []
+  (let [target (js/document.querySelector "#js-repo-pjax-container")
+        is-valid-mutation? #(and (= (.-type %) "childList") (not-empty (.-addedNodes %)))
+        observer (js/MutationObserver. #(when (some is-valid-mutation? %) (main)))]
+    (.observe observer target #js{:childList true :attributes false :characterData false})
+    (main)))
+
+(watch)

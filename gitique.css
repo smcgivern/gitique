@@ -2,6 +2,15 @@
   display: none;
 }
 
-.gitique-buttons {
+.gitique-header-wrapper {
   margin-right: 10px;
+}
+
+.gitique-header-wrapper input[type=text] {
+  min-height: 26px;
+  padding: 2px 4px;
+}
+
+.gitique-header-wrapper input[type=text].error {
+  border-color: red;
 }

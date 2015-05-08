@@ -8,6 +8,9 @@
 (extend-type js/NodeList ISeqable (-seq [array] (array-seq array 0)))
 (extend-type js/DOMTokenList ISeqable (-seq [array] (array-seq array 0)))
 
+(def token-key "gitique.github_access_token")
+(declare get-new-commits!)
+
 (defn- log [s] (println s) s)
 (defn- is? [type] (fn [item] (= (:type item) type)))
 (defn- child-text [parent selector] (.-textContent (.querySelector parent selector)))
@@ -83,7 +86,7 @@
                            "All files")
         new (dom/createDom "a" #js{:className "btn btn-sm" :id "gitique-show-new"}
                            "Since last CR comment")
-        group (dom/createDom "div" (clj->js ["btn-group" "right" "gitique-buttons"]) all new)]
+        group (dom/createDom "div" #js["btn-group" "right" "gitique-header-wrapper"] all new)]
     (.addEventListener all "click" (partial set-state! "all") true)
     (.addEventListener new "click" (partial set-state! "new") true)
     (.insertBefore parent group sibling)))
@@ -97,15 +100,56 @@
         (if-not (include-filenames filename)
           (.add (.-classList element) "gitique-hidden"))))))
 
-(defn- xhr-handler [event]
-  (let [body (js->clj (.getResponseJson (.-target event)) :keywordize-keys true)]
-    (annotate-files! (:files body))
-    (add-button!)
-    (update-overall!)))
+(defn- update-token! [url event]
+  (let [element (.-target event)
+        new-token (.-value (.querySelector element "input"))]
+    (js/localStorage.setItem token-key new-token)
+    (get-new-commits! url)
+    (.removeChild (.-parentElement element) element)
+    (.preventDefault event)
+    (.stopPropagation event)))
 
-(defn- get-new-commits! [repo from to]
-  (let [url (str "https://api.github.com/repos/" repo "/compare/" from "..." to)]
-    (xhr/send url xhr-handler "GET" nil headers)))
+(defn- request-token! [url]
+  (let [parent (js/document.querySelector "#toc")
+        sibling (js/document.querySelector "#toc .toc-diff-stats")
+        current-token (js/localStorage.getItem token-key)
+        input (dom/createDom "input" #js{:type "text"
+                                         :length 50
+                                         :value current-token
+                                         :placeholder "Access token"
+                                         :class (when (> (count current-token) 1) "error")})
+        needs-repo? (js/document.querySelector ".repo-private-label")
+        token-link (dom/createDom
+                    "a"
+                    #js{:href "https://help.github.com/articles/creating-an-access-token-for-command-line-use/"}
+                    "access token")
+        explanation (dom/createDom
+                     "span"
+                     nil
+                     "Please enter an " token-link (when needs-repo? " with repo scope") ": ")
+        wrapper (dom/createDom
+                 "form"
+                 #js{:class "right gitique-header-wrapper"}
+                 explanation input)]
+    (.addEventListener input "input" #(.remove (.-classList (.-target %)) "error"))
+    (.addEventListener wrapper "submit" (partial update-token! url))
+    (.insertBefore parent wrapper sibling)))
+
+(defn- xhr-handler [event]
+  (if-let [error (not= 200 (.getStatus (.-target event)))]
+    (request-token! (.getLastUri (.-target event)))
+    (let [body (js->clj (.getResponseJson (.-target event)) :keywordize-keys true)]
+      (annotate-files! (:files body))
+      (add-button!)
+      (update-overall!))))
+
+(defn- get-new-commits!
+  ([url]
+   (let [auth-token (js/localStorage.getItem token-key)
+         headers (if auth-token {"Authorization" (str "token " auth-token)} {})]
+     (xhr/send url xhr-handler "GET" nil headers))   )
+  ([repo from to]
+   (get-new-commits! (str "https://api.github.com/repos/" repo "/compare/" from "..." to))))
 
 (defn- add-icon! [element]
   (let [parent (.-parentElement (.-parentElement element))

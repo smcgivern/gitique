@@ -9,7 +9,29 @@
 (extend-type js/DOMTokenList ISeqable (-seq [array] (array-seq array 0)))
 
 (def token-key "gitique.github_access_token")
-(declare get-new-commits!)
+(def state (atom {:selected-commits '()
+                  :current-pr nil}))
+
+(declare add-icons! get-new-commits! update-icons!)
+(declare log maybe-show-new)
+
+(add-watch state
+           :pr-change
+           (fn [_ _ old new]
+             (let [new-pr (:current-pr new)]
+               (when (not= (:current-pr old) new-pr)
+                 (add-icons!)
+                 (maybe-show-new (:repo new-pr) (:pr new-pr))))))
+
+(add-watch state
+           :commits-change
+           (fn [_ _ old new]
+             (let [repo (get-in new [:current-pr :repo])
+                   new-commits (:selected-commits new)]
+               (when (not= (:selected-commits old) new-commits)
+                 (update-icons! new-commits)
+                 (get-new-commits! repo new-commits)))))
+
 
 (defn- log [s] (println s) s)
 (defn- is? [type] (fn [item] (= (:type item) type)))
@@ -44,9 +66,9 @@
         items (map-indexed (annotated-element creator) elements)
         last-reviewer-comment (last (filter (is? "reviewer-comment") items))
         commits (filter (is? "commit-block") items)
-        partitioned-commits (split-with #(< (:index %) (:index last-reviewer-comment)) commits)]
-    {:last-reviewed-commit (-> partitioned-commits first last)
-     :new-commits (last partitioned-commits)}))
+        [reviewed-commits new-commits] (split-with #(< (:index %) (:index last-reviewer-comment)) commits)]
+    {:last-reviewed-commit (-> reviewed-commits last commit-shas last)
+     :new-commits (mapcat commit-shas new-commits)}))
 
 (defn- diffstat-count [gitique-enabled direction]
   (let [selector (str "#toc ol>li" (when gitique-enabled ":not(.gitique-hidden)") " .diffstat>.text-diff-" direction)
@@ -149,32 +171,53 @@
   ([url]
    (let [auth-token (js/localStorage.getItem token-key)
          headers (if auth-token {"Authorization" (str "token " auth-token)} {})]
-     (xhr/send url xhr-handler "GET" nil headers))   )
-  ([repo from to]
-   (get-new-commits! (str "https://api.github.com/repos/" repo "/compare/" from "..." to))))
+     (xhr/send url xhr-handler "GET" nil headers)))
+  ([repo [from & to]]
+   (when (and from to)
+     (get-new-commits! (str "https://api.github.com/repos/" repo "/compare/" from "..." (last to))))))
 
 (defn- add-icon! [element]
-  (let [parent (.-parentElement (.-parentElement element))
-        plus-icon (dom/createDom "span" #js["octicon" "octicon-diff-added"])]
-    (.insertBefore parent plus-icon (.-firstChild parent))))
+  (let [parent (.-parentElement (.-parentElement element))]
+    (when-not (.querySelector parent ".gitique-icon")
+      (.appendChild parent (dom/createDom "span" #js["octicon octicon-diff-added gitique-icon"])))))
 
-(defn- add-icons! [commit-block]
-  (dorun (map add-icon! (.querySelectorAll (:element commit-block) ".commit-id"))))
+(defn- add-icons! []
+  (doseq [element (js/document.querySelectorAll ".commit-id")] (add-icon! element)))
 
-(defn- maybe-show-new [repo]
-  (let [{:keys [last-reviewed-commit new-commits]} (commit-info)]
-    (if (and last-reviewed-commit (not-empty new-commits))
-      (do
-        (get-new-commits! repo (-> last-reviewed-commit commit-shas last) (-> new-commits last commit-shas last))
-        (dorun (map add-icons! new-commits)))
-      (log "No unreviewed commits"))))
+(defn- find-commit [commit-id]
+  (.-parentElement (.-parentElement (js/document.querySelector (str ".commit-id[href$='" commit-id "']")))))
+
+(defn- update-icon! [commit-id new-class new-title]
+  (let [element (if (string? commit-id)
+                  (.querySelector (find-commit commit-id) ".gitique-icon")
+                  commit-id)
+        element-classes (.-classList element)]
+    (doseq [class ["gitique-disabled" "gitique-enabled" "gitique-first"]]
+      (.remove element-classes class))
+    (.add element-classes new-class)
+    (.setAttribute element "title" new-title)))
+
+(defn- update-icons! [[from & new]]
+  (when from
+    (when new
+      (update-icon! from "gitique-first" "Last reviewed commit"))
+    (doseq [new-commit new]
+      (update-icon! new-commit "gitique-enabled" "New commit")))
+  (doseq [disabled-commit (js/document.querySelectorAll ".gitique-icon:not(.gitique-enabled):not(.gitique-first)")]
+    (update-icon! disabled-commit "gitique-disabled" "Reviewed commit")))
+
+(defn- maybe-show-new [repo pr]
+  (swap! state assoc :selected-commits
+         (when repo
+           (let [{:keys [last-reviewed-commit new-commits]} (commit-info)]
+             (cons last-reviewed-commit new-commits)))))
 
 (defn- main []
-  (let [components (string/split (aget js/window "location" "pathname") "/")
-        repo (str (get components 1) "/" (get components 2))]
-    (if (= (get components 3) "pull")
-      (maybe-show-new repo)
-      (log (str "Not a pull request: " components)))))
+  (let [components (string/split js/window.location.pathname "/")
+        repo (str (get components 1) "/" (get components 2))
+        pr (get components 4)
+        current-pr (when (= (get components 3) "pull") {:repo repo :pr pr})]
+    (swap! state assoc :current-pr current-pr)))
 
 (defn- watch []
   (let [target (js/document.querySelector "#js-repo-pjax-container")

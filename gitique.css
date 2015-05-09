@@ -14,3 +14,15 @@
 .gitique-header-wrapper input[type=text].error {
   border-color: red;
 }
+
+.gitique-icon.gitique-disabled {
+  color: #bbb;
+}
+
+.gitique-icon.gitique-first {
+  color: #000;
+}
+
+.gitique-icon.gitique-enabled {
+  color: #6cc644;
+}

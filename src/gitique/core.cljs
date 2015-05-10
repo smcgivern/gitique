@@ -219,11 +219,9 @@
         current-pr (when (= (get components 3) "pull") {:repo repo :pr pr})]
     (swap! state assoc :current-pr current-pr)))
 
-(defn- watch []
+(defn ^:export watch []
   (let [target (js/document.querySelector "#js-repo-pjax-container")
         is-valid-mutation? #(and (= (.-type %) "childList") (not-empty (.-addedNodes %)))
         observer (js/MutationObserver. #(when (some is-valid-mutation? %) (main)))]
     (.observe observer target #js{:childList true :attributes false :characterData false})
     (main)))
-
-(watch)

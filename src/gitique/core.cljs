@@ -12,6 +12,8 @@
 (def state (atom {:selected-commits '()
                   :current-pr nil}))
 
+(def pjax-wrapper (dom/getElement "js-repo-pjax-container"))
+
 (declare add-icons! get-new-commits! update-icons!)
 (declare log maybe-show-new)
 
@@ -78,7 +80,7 @@
     (reduce + numbers)))
 
 (defn- update-overall! []
-  (let [gitique-enabled (js/document.querySelector ".gitique-enabled")
+  (let [gitique-enabled (.contains (.-classList pjax-wrapper) "gitique-enabled")
         selector (str "#files .file" (when gitique-enabled ":not(.gitique-hidden)"))
         file-count (count (js/document.querySelectorAll selector))
         added (diffstat-count gitique-enabled "added")
@@ -94,13 +96,12 @@
   (let [enabled? (= state "new")
         other-state (if enabled? "all" "new")
         to-enable (dom/getElement (str "gitique-show-" state))
-        to-disable (dom/getElement (str "gitique-show-" other-state))
-        wrapper (dom/getElement "js-repo-pjax-container")]
+        to-disable (dom/getElement (str "gitique-show-" other-state))]
     (.add (.-classList to-enable) "selected")
     (.remove (.-classList to-disable) "selected")
     (if (= state "new")
-      (.add (.-classList wrapper) "gitique-enabled")
-      (.remove (.-classList wrapper) "gitique-enabled"))
+      (.add (.-classList pjax-wrapper) "gitique-enabled")
+      (.remove (.-classList pjax-wrapper) "gitique-enabled"))
     (update-overall!)))
 
 (defn- add-button! []
@@ -220,8 +221,7 @@
     (swap! state assoc :current-pr current-pr)))
 
 (defn ^:export watch []
-  (let [target (js/document.querySelector "#js-repo-pjax-container")
-        is-valid-mutation? #(and (= (.-type %) "childList") (not-empty (.-addedNodes %)))
+  (let [is-valid-mutation? #(and (= (.-type %) "childList") (not-empty (.-addedNodes %)))
         observer (js/MutationObserver. #(when (some is-valid-mutation? %) (main)))]
-    (.observe observer target #js{:childList true :attributes false :characterData false})
+    (.observe observer pjax-wrapper #js{:childList true :attributes false :characterData false})
     (main)))

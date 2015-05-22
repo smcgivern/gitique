@@ -29,7 +29,9 @@
 +Deeper and more profound,
 +The door of all subtleties!"]
     (testing "Testing parse-diff"
-      (is (= {:old [[]]
+      (is (= {:old [[{:type :placeholder}
+                     {:type :placeholder}
+                     {:type :placeholder}]]
               :new [[{:index 1 :type :change :content "This is a hunk which has been added."}
                      {:index 2 :type :change :content ""}
                      {:index 3 :type :change :content "There are no old lines."}]]}
@@ -37,21 +39,29 @@
       (is (= {:old [[{:index 1 :type :change :content "This is a hunk which has been deleted."}
                      {:index 2 :type :change :content ""}
                      {:index 3 :type :change :content "There are no new lines."}]]
-              :new [[]]}
+              :new [[{:type :placeholder}
+                     {:type :placeholder}
+                     {:type :placeholder}]]}
              (pure/parse-diff deletion) ))
       (let [{:keys [old new]} (pure/parse-diff patch)]
         (is (= [[{:index 1 :type :change :content "The Way that can be told of is not the eternal Way;"}
                  {:index 2 :type :change :content "The name that can be named is not the eternal name."}
                  {:index 3 :type :context :content "The Nameless is the origin of Heaven and Earth;"}
                  {:index 4 :type :change :content "The Named is the mother of all things."}
+                 {:type :placeholder}
                  {:index 5 :type :context :content "Therefore let there always be non-being,"}
                  {:index 6 :type :context :content "  so we may see their subtlety,"}
                  {:index 7 :type :context :content "And let there always be being,"}]
                 [{:index 9 :type :context :content "The two are the same,"}
                  {:index 10 :type :context :content "But after they are produced,"}
-                 {:index 11 :type :context :content "  they have different names."}]]
+                 {:index 11 :type :context :content "  they have different names."}
+                 {:type :placeholder}
+                 {:type :placeholder}
+                 {:type :placeholder}]]
                old))
-        (is (= [[{:index 1 :type :context :content "The Nameless is the origin of Heaven and Earth;"}
+        (is (= [[{:type :placeholder}
+                 {:type :placeholder}
+                 {:index 1 :type :context :content "The Nameless is the origin of Heaven and Earth;"}
                  {:index 2 :type :change :content "The named is the mother of all things."}
                  {:index 3 :type :change :content ""}
                  {:index 4 :type :context :content "Therefore let there always be non-being,"}

@@ -10,6 +10,7 @@ A Chrome extension to make GitHub code review better.
    watch for changes in the source.
 3. Go to [chrome://extensions/](chrome://extensions/) and choose to load an unpacked
    extension, then point to the cloned repo.
+4. To run the tests, run `./build test`. This requires `phantomjs` to be on the path.
 
 ### Production builds
 

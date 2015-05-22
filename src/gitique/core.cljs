@@ -104,6 +104,8 @@
     (update-overall!)))
 
 (defn- add-button! []
+  (when-let [existing-buttons (js/document.querySelector "#toc .gitique-header-wrapper")]
+    (.remove existing-buttons))
   (let [parent (js/document.querySelector "#toc")
         sibling (js/document.querySelector "#toc .toc-diff-stats")
         all (dom/createDom "a" #js{:className "btn btn-sm selected" :id "gitique-show-all"}

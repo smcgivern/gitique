@@ -55,7 +55,6 @@
     (cond (.contains classes "discussion-commits") "commit-block"
           (.contains classes "discussion-item-assigned") "assigned"
           (.contains classes "discussion-item-labeled") "labeled"
-          (.contains classes "outdated-diff-comment-container") "outdated-diff-comment"
           :else (if (= (child-text item ".author") creator) "owner-comment" "reviewer-comment"))))
 
 (defn- annotated-element [creator]

@@ -39,18 +39,26 @@
 (defn- is? [type] (fn [item] (= (:type item) type)))
 (defn- child-text [parent selector] (.-textContent (.querySelector parent selector)))
 
-(defn- set-text! [selector text]
+(defn- set-text!
+  "Set the element matching the selector's `textContent` property"
+   [selector text]
   (set! (.-textContent (js/document.querySelector selector)) text))
 
-(defn- commit-sha [element]
+(defn- commit-sha
+  "Given an element with a link to a commit, with the class `commit-id`, get the commit SHA"
+  [element]
   (last (string/split (.getAttribute (.querySelector element ".commit-id") "href") "/")))
 
-(defn- commit-shas [item]
+(defn- commit-shas
+  "Seq of the commit SHAs contained within the item's element"
+  [item]
   (if-let [element (:element item)]
     (map commit-sha (.querySelectorAll (:element item) ".commit"))
     []))
 
-(defn- item-type [creator item]
+(defn- item-type
+  "Categorise an item based on its class and the creator of the PR"
+  [creator item]
   (let [classes (.-classList item)]
     (cond (.contains classes "discussion-commits") "commit-block"
           (.contains classes "discussion-item-assigned") "assigned"
@@ -61,7 +69,10 @@
   (fn [index element]
     {:type (item-type creator element) :element element :index index}))
 
-(defn- commit-info []
+(defn- commit-info
+  "On a pull request, get all of the discussion items and their types, returning a map of
+  the last reviewed commit and the commits since"
+  []
   (let [elements (js/document.querySelectorAll ".js-discussion .timeline-comment-wrapper, .js-discussion .discussion-item")
         creator (child-text (.item elements 0) ".author")
         items (map-indexed (annotated-element creator) elements)
@@ -71,19 +82,21 @@
     {:last-reviewed-commit (-> reviewed-commits last commit-shas last)
      :new-commits (mapcat commit-shas new-commits)}))
 
-(defn- diffstat-count [gitique-enabled direction]
-  (let [selector (str "#toc ol>li" (when gitique-enabled ":not(.gitique-hidden)") " .diffstat>.text-diff-" direction)
-        elements (js/document.querySelectorAll selector)
-        contents (map #(string/replace (.-textContent %) "−" "-") elements)
-        numbers (map #(js/parseInt % 10) contents)]
-    (reduce + numbers)))
+(defn- diffstat-count
+  "Sum the lines in `direction` (added or removed) based on the visible files"
+  [gitique-enabled direction]
+  (let [selector (str "#diff .file" (when gitique-enabled ":not(.gitique-hidden)") " .blob-num-" direction)
+        elements (js/document.querySelectorAll selector)]
+    (count elements)))
 
-(defn- update-overall! []
+(defn- update-overall!
+  "Update the diff stats and file counts above the file list, given the files shown"
+  []
   (let [gitique-enabled (.contains (.-classList pjax-wrapper) "gitique-enabled")
         selector (str "#files .file" (when gitique-enabled ":not(.gitique-hidden)"))
         file-count (count (js/document.querySelectorAll selector))
-        added (diffstat-count gitique-enabled "added")
-        deleted (- (diffstat-count gitique-enabled "deleted"))]
+        added (diffstat-count gitique-enabled "addition")
+        deleted (diffstat-count gitique-enabled "deletion")]
     (set-text! "#files_tab_counter" file-count)
     (set-text! "#diffstat>.text-diff-added" (str "+" added))
     (set-text! "#diffstat>.text-diff-deleted" (str "−" deleted))
@@ -174,9 +187,9 @@
    (let [auth-token (js/localStorage.getItem token-key)
          headers (if auth-token {"Authorization" (str "token " auth-token)} {})]
      (xhr/send url xhr-handler "GET" nil headers)))
-  ([repo [from & to]]
+  ([repo [from to]]
    (when (and from to)
-     (get-new-commits! (str "https://api.github.com/repos/" repo "/compare/" from "..." (last to))))))
+     (get-new-commits! (str "https://api.github.com/repos/" repo "/compare/" from "..." to)))))
 
 (defn- add-icon! [element]
   (let [parent (.-parentElement (.-parentElement element))]
@@ -186,7 +199,9 @@
 (defn- add-icons! []
   (doseq [element (js/document.querySelectorAll ".commit-id")] (add-icon! element)))
 
-(defn- find-commit [commit-id]
+(defn- find-commit
+  "Find the link to a commit on the page by its SHA"
+  [commit-id]
   (.-parentElement (.-parentElement (js/document.querySelector (str ".commit-id[href$='" commit-id "']")))))
 
 (defn- update-icon! [commit-id new-class new-title]
@@ -200,9 +215,8 @@
     (.setAttribute element "title" new-title)))
 
 (defn- update-icons! [[from & new]]
-  (when from
-    (when new
-      (update-icon! from "gitique-first" "Last reviewed commit"))
+  (when (and from new)
+    (update-icon! from "gitique-first" "Last reviewed commit")
     (doseq [new-commit new]
       (update-icon! new-commit "gitique-enabled" "New commit")))
   (doseq [disabled-commit (js/document.querySelectorAll ".gitique-icon:not(.gitique-enabled):not(.gitique-first)")]
@@ -221,7 +235,10 @@
         current-pr (when (= (get components 3) "pull") {:repo repo :pr pr})]
     (swap! state assoc :current-pr current-pr)))
 
-(defn ^:export watch []
+(defn ^:export watch
+  "Run `main` once, then watch for DOM mutations in the PJAX container and run `main` when
+  it changes"
+  []
   (let [is-valid-mutation? #(and (= (.-type %) "childList") (not-empty (.-addedNodes %)))
         observer (js/MutationObserver. #(when (some is-valid-mutation? %) (main)))]
     (.observe observer pjax-wrapper #js{:childList true :attributes false :characterData false})

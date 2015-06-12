@@ -1,5 +1,6 @@
 .gitique-enabled .gitique-hidden {
-  display: none;
+  /* GitHub override the display property with more specific selectors than this one. */
+  display: none !important;
 }
 
 .gitique-header-wrapper {
@@ -25,4 +26,8 @@
 
 .gitique-icon.gitique-enabled {
   color: #6cc644;
+}
+
+.gitique-enabled .gitique-context .blob-num-addition, .gitique-enabled .gitique-context .blob-code-addition {
+  background-color: #fff;
 }

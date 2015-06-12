@@ -1,7 +1,8 @@
 (ns gitique.core
   (:require [clojure.string :as string]
             [goog.net.XhrIo :as xhr]
-            [goog.dom :as dom]))
+            [goog.dom :as dom]
+            [gitique.pure :as pure]))
 
 (enable-console-print!)
 
@@ -130,13 +131,24 @@
     (.addEventListener new "click" (partial set-state! "new") true)
     (.insertBefore parent group sibling)))
 
+(defn- annotate-lines! [element file]
+  (let [new-lines-list (flatten (:new (-> file :patch pure/parse-diff)))
+        new-lines (zipmap (map :index new-lines-list) new-lines-list)]
+    (doseq [line (.querySelectorAll element ".diff-table tr")]
+      (let [line-number-element (.querySelector line "[data-line-number]")
+            line-number (if line-number-element (.getAttribute line-number-element "data-line-number") "0")]
+        (if-let [new-line (new-lines (js/parseInt line-number 10))]
+          (when (= :context (:type new-line)) (.add (.-classList line) "gitique-context"))
+          (.add (.-classList line) "gitique-hidden"))))))
+
 (defn- annotate-files! [files]
-  (let [include-filenames (set (map :filename files))]
+  (let [include-filenames (zipmap (map :filename files) files)]
     (doseq [element (js/document.querySelectorAll "#toc ol>li, #files .file")]
       (let [toc-link (.querySelector element "li>a")
             file-contents (.querySelector element "[data-path]")
             filename (if toc-link (.-textContent toc-link) (.getAttribute file-contents "data-path"))]
-        (if-not (include-filenames filename)
+        (if-let [file (include-filenames filename)]
+          (annotate-lines! element file)
           (.add (.-classList element) "gitique-hidden"))))))
 
 (defn- update-token! [url event]

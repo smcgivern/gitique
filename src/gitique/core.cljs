@@ -246,7 +246,8 @@
   "Run `main` once, then watch for DOM mutations in the PJAX container and run `main` when
   it changes"
   []
-  (let [is-valid-mutation? #(and (= (.-type %) "childList") (not-empty (.-addedNodes %)))
-        observer (js/MutationObserver. #(when (some is-valid-mutation? %) (main)))]
-    (.observe observer pjax-wrapper #js{:childList true :attributes false :characterData false})
-    (main)))
+  (when pjax-wrapper
+    (let [is-valid-mutation? #(and (= (.-type %) "childList") (not-empty (.-addedNodes %)))
+          observer (js/MutationObserver. #(when (some is-valid-mutation? %) (main)))]
+      (.observe observer pjax-wrapper #js{:childList true :attributes false :characterData false})))
+  (main))

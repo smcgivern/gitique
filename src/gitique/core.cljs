@@ -2,21 +2,19 @@
   (:require [clojure.string :as string]
             [goog.net.XhrIo :as xhr]
             [goog.dom :as dom]
-            [gitique.pure :as pure]))
+            [gitique.pure :as pure]
+            [gitique.util :as util]))
 
 (enable-console-print!)
-
-(extend-type js/NodeList ISeqable (-seq [array] (array-seq array 0)))
-(extend-type js/DOMTokenList ISeqable (-seq [array] (array-seq array 0)))
 
 (def token-key "gitique.github_access_token")
 (def state (atom {:selected-commits '()
                   :current-pr nil}))
 
-(def pjax-wrapper (dom/getElement "js-repo-pjax-container"))
+(def pjax-wrapper (util/qs "#js-repo-pjax-container"))
 
 (declare add-icons! get-new-commits! update-icons!)
-(declare log maybe-show-new)
+(declare maybe-show-new)
 
 (add-watch state
            :pr-change
@@ -35,26 +33,23 @@
                  (update-icons! new-commits)
                  (get-new-commits! repo new-commits)))))
 
-
-(defn- log [s] (println s) s)
 (defn- is? [type] (fn [item] (= (:type item) type)))
-(defn- child-text [parent selector] (.-textContent (.querySelector parent selector)))
 
 (defn- set-text!
   "Set the element matching the selector's `textContent` property"
    [selector text]
-  (set! (.-textContent (js/document.querySelector selector)) text))
+  (set! (.-textContent (util/qs selector)) text))
 
 (defn- commit-sha
   "Given an element with a link to a commit, with the class `commit-id`, get the commit SHA"
   [element]
-  (last (string/split (.getAttribute (.querySelector element ".commit-id") "href") "/")))
+  (last (string/split (.getAttribute (util/qs ".commit-id" element) "href") "/")))
 
 (defn- commit-shas
   "Seq of the commit SHAs contained within the item's element"
   [item]
   (if-let [element (:element item)]
-    (map commit-sha (.querySelectorAll (:element item) ".commit"))
+    (map commit-sha (util/qsa ".commit" (:element item)))
     []))
 
 (defn- item-type
@@ -64,7 +59,7 @@
     (cond (.contains classes "discussion-commits") "commit-block"
           (.contains classes "discussion-item-assigned") "assigned"
           (.contains classes "discussion-item-labeled") "labeled"
-          :else (if (= (child-text item ".author") creator) "owner-comment" "reviewer-comment"))))
+          :else (if (= (util/child-text item ".author") creator) "owner-comment" "reviewer-comment"))))
 
 (defn- annotated-element [creator]
   (fn [index element]
@@ -74,8 +69,8 @@
   "On a pull request, get all of the discussion items and their types, returning a map of
   the last reviewed commit and the commits since"
   []
-  (let [elements (js/document.querySelectorAll ".js-discussion .timeline-comment-wrapper, .js-discussion .discussion-item")
-        creator (child-text (.item elements 0) ".author")
+  (let [elements (util/qsa ".js-discussion .timeline-comment-wrapper, .js-discussion .discussion-item")
+        creator (util/child-text (.item elements 0) ".author")
         items (map-indexed (annotated-element creator) elements)
         last-reviewer-comment (last (filter (is? "reviewer-comment") items))
         commits (filter (is? "commit-block") items)
@@ -87,7 +82,7 @@
   "Sum the lines in `direction` (added or removed) based on the visible files"
   [gitique-enabled direction]
   (let [selector (str "#diff .file" (when gitique-enabled ":not(.gitique-hidden)") " .blob-num-" direction)
-        elements (js/document.querySelectorAll selector)]
+        elements (util/qsa selector)]
     (count elements)))
 
 (defn- update-overall!
@@ -95,7 +90,7 @@
   []
   (let [gitique-enabled (.contains (.-classList pjax-wrapper) "gitique-enabled")
         selector (str "#files .file" (when gitique-enabled ":not(.gitique-hidden)"))
-        file-count (count (js/document.querySelectorAll selector))
+        file-count (count (util/qsa selector))
         added (diffstat-count gitique-enabled "addition")
         deleted (diffstat-count gitique-enabled "deletion")]
     (set-text! "#files_tab_counter" file-count)
@@ -108,8 +103,8 @@
 (defn- set-state! [state event]
   (let [enabled? (= state "new")
         other-state (if enabled? "all" "new")
-        to-enable (dom/getElement (str "gitique-show-" state))
-        to-disable (dom/getElement (str "gitique-show-" other-state))]
+        to-enable (util/qs (str "#gitique-show-" state))
+        to-disable (util/qs (str "#gitique-show-" other-state))]
     (.add (.-classList to-enable) "selected")
     (.remove (.-classList to-disable) "selected")
     (if (= state "new")
@@ -118,10 +113,10 @@
     (update-overall!)))
 
 (defn- add-button! []
-  (when-let [existing-buttons (js/document.querySelector "#toc .gitique-header-wrapper")]
+  (when-let [existing-buttons (util/qs "#toc .gitique-header-wrapper")]
     (.remove existing-buttons))
-  (let [parent (js/document.querySelector "#toc")
-        sibling (js/document.querySelector "#toc .toc-diff-stats")
+  (let [parent (util/qs "#toc")
+        sibling (util/qs "#toc .toc-diff-stats")
         all (dom/createDom "a" #js{:className "btn btn-sm selected" :id "gitique-show-all"}
                            "All files")
         new (dom/createDom "a" #js{:className "btn btn-sm" :id "gitique-show-new"}
@@ -134,8 +129,8 @@
 (defn- annotate-lines! [element file]
   (let [new-lines-list (flatten (:new (-> file :patch pure/parse-diff)))
         new-lines (zipmap (map :index new-lines-list) new-lines-list)]
-    (doseq [line (.querySelectorAll element ".diff-table tr")]
-      (let [line-number-element (.querySelector line "[data-line-number]")
+    (doseq [line (util/qsa ".diff-table tr" element)]
+      (let [line-number-element (util/qs "[data-line-number]" line)
             line-number (if line-number-element (.getAttribute line-number-element "data-line-number") "0")]
         (if-let [new-line (new-lines (js/parseInt line-number 10))]
           (when (= :context (:type new-line)) (.add (.-classList line) "gitique-context"))
@@ -143,9 +138,9 @@
 
 (defn- annotate-files! [files]
   (let [include-filenames (zipmap (map :filename files) files)]
-    (doseq [element (js/document.querySelectorAll "#toc ol>li, #files .file")]
-      (let [toc-link (.querySelector element "li>a")
-            file-contents (.querySelector element "[data-path]")
+    (doseq [element (util/qsa "#toc ol>li, #files .file")]
+      (let [toc-link (util/qs "li>a" element)
+            file-contents (util/qs "[data-path]" element)
             filename (if toc-link (.-textContent toc-link) (.getAttribute file-contents "data-path"))]
         (if-let [file (include-filenames filename)]
           (annotate-lines! element file)
@@ -153,7 +148,7 @@
 
 (defn- update-token! [url event]
   (let [element (.-target event)
-        new-token (.-value (.querySelector element "input"))]
+        new-token (.-value (util/qs "input" element))]
     (js/localStorage.setItem token-key new-token)
     (get-new-commits! url)
     (.removeChild (.-parentElement element) element)
@@ -161,15 +156,15 @@
     (.stopPropagation event)))
 
 (defn- request-token! [url]
-  (let [parent (js/document.querySelector "#toc")
-        sibling (js/document.querySelector "#toc .toc-diff-stats")
+  (let [parent (util/qs "#toc")
+        sibling (util/qs "#toc .toc-diff-stats")
         current-token (js/localStorage.getItem token-key)
         input (dom/createDom "input" #js{:type "text"
                                          :length 50
                                          :value current-token
                                          :placeholder "Access token"
                                          :class (when (> (count current-token) 1) "error")})
-        needs-repo? (js/document.querySelector ".repo-private-label")
+        needs-repo? (util/qs ".repo-private-label")
         token-link (dom/createDom
                     "a"
                     #js{:href "https://help.github.com/articles/creating-an-access-token-for-command-line-use/"}
@@ -205,20 +200,20 @@
 
 (defn- add-icon! [element]
   (let [parent (.-parentElement (.-parentElement element))]
-    (when-not (.querySelector parent ".gitique-icon")
+    (when-not (util/qs ".gitique-icon" parent)
       (.appendChild parent (dom/createDom "span" #js["octicon octicon-diff-added gitique-icon"])))))
 
 (defn- add-icons! []
-  (doseq [element (js/document.querySelectorAll ".commit-id")] (add-icon! element)))
+  (doseq [element (util/qsa ".commit-id")] (add-icon! element)))
 
 (defn- find-commit
   "Find the link to a commit on the page by its SHA"
   [commit-id]
-  (.-parentElement (.-parentElement (js/document.querySelector (str ".commit-id[href$='" commit-id "']")))))
+  (.-parentElement (.-parentElement (util/qs (str ".commit-id[href$='" commit-id "']")))))
 
 (defn- update-icon! [commit-id new-class new-title]
   (let [element (if (string? commit-id)
-                  (.querySelector (find-commit commit-id) ".gitique-icon")
+                  (util/qs ".gitique-icon" (find-commit commit-id))
                   commit-id)
         element-classes (.-classList element)]
     (doseq [class ["gitique-disabled" "gitique-enabled" "gitique-first"]]
@@ -231,10 +226,10 @@
     (update-icon! from "gitique-first" "Last reviewed commit")
     (doseq [new-commit new]
       (update-icon! new-commit "gitique-enabled" "New commit")))
-  (doseq [disabled-commit (js/document.querySelectorAll ".gitique-icon:not(.gitique-enabled):not(.gitique-first)")]
+  (doseq [disabled-commit (util/qsa ".gitique-icon:not(.gitique-enabled):not(.gitique-first)")]
     (update-icon! disabled-commit "gitique-disabled" "Reviewed commit")))
 
-(defn- maybe-show-new [repo pr]
+(defn- maybe-show-new [repo]
   (swap! state assoc :selected-commits
          (when repo
            (let [{:keys [last-reviewed-commit new-commits]} (commit-info)]

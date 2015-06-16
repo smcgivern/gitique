@@ -11,7 +11,7 @@
 (defn- remove-adjacent-placeholders
   "Given sequences of diff maps in :new and :old, remove the placeholder lines
   which occur at an offset of one position in both"
-  [{:keys [old new]} diffs]
+  [& {:keys [old new]} diffs]
   (let [remove-placeholders (fn [other operation i item]
                               (if-let [next-item (nth other (operation i) {})]
                                 (when-not (= :placeholder (:type item) (:type next-item)) item)

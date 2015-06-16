@@ -7,7 +7,6 @@
 (extend-type js/DOMTokenList ISeqable (-seq [array] (array-seq array 0)))
 
 (defn log [s] (println s) s)
-(defn child-text [parent selector] (.-textContent (qs selector parent)))
 
 (defn qs
   "Wrapper for `querySelector`"
@@ -22,3 +21,5 @@
    (qsa selector js/document))
   ([selector element]
    (.querySelectorAll element selector)))
+
+(defn child-text [parent selector] (.-textContent (qs selector parent)))

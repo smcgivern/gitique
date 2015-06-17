@@ -1,5 +1,7 @@
 # Gitique
 
+[![Build Status](https://travis-ci.org/smcgivern/gitique.svg?branch=master)](https://travis-ci.org/smcgivern/gitique)
+
 A Chrome extension to make GitHub code review better.
 
 ## Developing

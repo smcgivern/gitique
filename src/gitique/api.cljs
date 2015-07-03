@@ -12,15 +12,15 @@
         new-token (.-value (util/qs "input" element))]
     (js/localStorage.setItem token-key new-token)
     (get-new-commits! url callback)
-    (.add (.-classList element) "gitique-hidden")
+    (util/add-class element "gitique-hidden")
     (.preventDefault event)
     (.stopPropagation event)))
 
 (defn- request-token! [url callback]
   (if-let [token-form (util/qs "#gitique-token-request")]
     (do
-      (.remove (.-classList token-form) "gitique-hidden")
-      (.add (.-classList (util/qs "input" token-form)) "error"))
+      (util/remove-class token-form "gitique-hidden")
+      (util/add-class (util/qs "input" token-form) "error"))
     (let [parent (util/qs "#toc")
           sibling (util/qs "#toc .toc-diff-stats")
           current-token (js/localStorage.getItem token-key)
@@ -42,7 +42,7 @@
                    "form"
                    #js{:class "right gitique-header-wrapper" :id "gitique-token-request"}
                    explanation input)]
-      (.addEventListener input "input" #(.remove (.-classList (.-target %)) "error"))
+      (.addEventListener input "input" #(util/remove-class (.-target %) "error"))
       (.addEventListener wrapper "submit" (partial update-token! url callback))
       (.insertBefore parent wrapper sibling))))
 

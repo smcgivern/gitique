@@ -22,4 +22,7 @@
   ([selector element]
    (.querySelectorAll element selector)))
 
+(defn add-class [element class] (.add (.-classList element) class))
+(defn remove-class [element class] (.remove (.-classList element) class))
+
 (defn child-text [parent selector] (.-textContent (qs selector parent)))

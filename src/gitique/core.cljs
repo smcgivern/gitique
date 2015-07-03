@@ -53,10 +53,10 @@
 (defn- item-type
   "Categorise an item based on its class and the creator of the PR"
   [creator item]
-  (let [classes (.-classList item)]
-    (cond (.contains classes "discussion-commits") "commit-block"
-          (.contains classes "discussion-item-assigned") "assigned"
-          (.contains classes "discussion-item-labeled") "labeled"
+  (let [classes-contain #(.contains (.-classList item) %)]
+    (cond (classes-contain "discussion-commits") "commit-block"
+          (classes-contain "discussion-item-assigned") "assigned"
+          (classes-contain "discussion-item-labeled") "labeled"
           :else (if (= (util/child-text item ".author") creator) "owner-comment" "reviewer-comment"))))
 
 (defn- annotated-element [creator]
@@ -103,11 +103,11 @@
         other-state (if enabled? "all" "new")
         to-enable (util/qs (str "#gitique-show-" state))
         to-disable (util/qs (str "#gitique-show-" other-state))]
-    (.add (.-classList to-enable) "selected")
-    (.remove (.-classList to-disable) "selected")
+    (util/add-class to-enable "selected")
+    (util/remove-class to-disable "selected")
     (if (= state "new")
-      (.add (.-classList pjax-wrapper) "gitique-enabled")
-      (.remove (.-classList pjax-wrapper) "gitique-enabled"))
+      (util/add-class pjax-wrapper "gitique-enabled")
+      (util/remove-class pjax-wrapper "gitique-enabled"))
     (update-overall!)))
 
 (defn- add-button! []
@@ -131,8 +131,8 @@
       (let [line-number-element (util/qs "[data-line-number]" line)
             line-number (if line-number-element (.getAttribute line-number-element "data-line-number") "0")]
         (if-let [new-line (new-lines (js/parseInt line-number 10))]
-          (when (= :context (:type new-line)) (.add (.-classList line) "gitique-context"))
-          (.add (.-classList line) "gitique-hidden"))))))
+          (when (= :context (:type new-line)) (util/add-class line "gitique-context"))
+          (util/add-class line "gitique-hidden"))))))
 
 (defn- annotate-files! [files]
   (let [include-filenames (zipmap (map :filename files) files)]
@@ -142,7 +142,7 @@
             filename (if toc-link (.-textContent toc-link) (.getAttribute file-contents "data-path"))]
         (if-let [file (include-filenames filename)]
           (annotate-lines! element file)
-          (.add (.-classList element) "gitique-hidden"))))))
+          (util/add-class element "gitique-hidden"))))))
 
 (defn- add-icon! [element]
   (let [parent (.-parentElement (.-parentElement element))]
@@ -160,11 +160,10 @@
 (defn- update-icon! [commit-id new-class new-title]
   (let [element (if (string? commit-id)
                   (util/qs ".gitique-icon" (find-commit commit-id))
-                  commit-id)
-        element-classes (.-classList element)]
+                  commit-id)]
     (doseq [class ["gitique-disabled" "gitique-enabled" "gitique-first"]]
-      (.remove element-classes class))
-    (.add element-classes new-class)
+      (util/remove-class element class))
+    (util/add-class element new-class)
     (.setAttribute element "title" new-title)))
 
 (defn- update-icons! [[from & new]]

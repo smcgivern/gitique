@@ -28,6 +28,16 @@
   color: #6cc644;
 }
 
-.gitique-enabled .gitique-context .blob-num-addition, .gitique-enabled .gitique-context .blob-code-addition {
+.gitique-enabled .gitique-context .blob-num-addition,
+.gitique-enabled .gitique-context .blob-code-addition,
+.gitique-enabled .gitique-context .blob-code-addition .x {
   background-color: #fff;
+}
+
+.gitique-enabled .gitique-context .blob-num-addition {
+  border-color: #eee;
+}
+
+.gitique-enabled .gitique-context .blob-code-addition::first-letter {
+  color: #fff;
 }

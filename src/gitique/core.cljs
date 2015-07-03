@@ -151,35 +151,39 @@
         new-token (.-value (util/qs "input" element))]
     (js/localStorage.setItem token-key new-token)
     (get-new-commits! url)
-    (.removeChild (.-parentElement element) element)
+    (.add (.-classList element) "gitique-hidden")
     (.preventDefault event)
     (.stopPropagation event)))
 
 (defn- request-token! [url]
-  (let [parent (util/qs "#toc")
-        sibling (util/qs "#toc .toc-diff-stats")
-        current-token (js/localStorage.getItem token-key)
-        input (dom/createDom "input" #js{:type "text"
-                                         :length 50
-                                         :value current-token
-                                         :placeholder "Access token"
-                                         :class (when (> (count current-token) 1) "error")})
-        needs-repo? (util/qs ".repo-private-label")
-        token-link (dom/createDom
-                    "a"
-                    #js{:href "https://help.github.com/articles/creating-an-access-token-for-command-line-use/"}
-                    "access token")
-        explanation (dom/createDom
-                     "span"
-                     nil
-                     "Please enter an " token-link (when needs-repo? " with repo scope") ": ")
-        wrapper (dom/createDom
-                 "form"
-                 #js{:class "right gitique-header-wrapper"}
-                 explanation input)]
-    (.addEventListener input "input" #(.remove (.-classList (.-target %)) "error"))
-    (.addEventListener wrapper "submit" (partial update-token! url))
-    (.insertBefore parent wrapper sibling)))
+  (if-let [token-form (util/qs "#gitique-token-request")]
+    (do
+      (.remove (.-classList token-form) "gitique-hidden")
+      (.add (.-classList (util/qs "input" token-form)) "error"))
+    (let [parent (util/qs "#toc")
+          sibling (util/qs "#toc .toc-diff-stats")
+          current-token (js/localStorage.getItem token-key)
+          input (dom/createDom "input" #js{:type "text"
+                                           :length 50
+                                           :value current-token
+                                           :placeholder "Access token"
+                                           :class (when (> (count current-token) 1) "error")})
+          needs-repo? (util/qs ".repo-private-label")
+          token-link (dom/createDom
+                      "a"
+                      #js{:href "https://help.github.com/articles/creating-an-access-token-for-command-line-use/"}
+                      "access token")
+          explanation (dom/createDom
+                       "span"
+                       nil
+                       "Please enter an " token-link (when needs-repo? " with repo scope") ": ")
+          wrapper (dom/createDom
+                   "form"
+                   #js{:class "right gitique-header-wrapper" :id "gitique-token-request"}
+                   explanation input)]
+      (.addEventListener input "input" #(.remove (.-classList (.-target %)) "error"))
+      (.addEventListener wrapper "submit" (partial update-token! url))
+      (.insertBefore parent wrapper sibling))))
 
 (defn- xhr-handler [event]
   (if-let [error (not= 200 (.getStatus (.-target event)))]

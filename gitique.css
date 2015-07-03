@@ -16,16 +16,24 @@
   border-color: red;
 }
 
-.gitique-icon.gitique-disabled {
+.gitique-icon.gitique-initial {
   color: #bbb;
 }
 
-.gitique-icon.gitique-first {
+.gitique-icon.gitique-reviewed {
+  color: #999;
+}
+
+.gitique-icon.gitique-basis {
   color: #000;
 }
 
-.gitique-icon.gitique-enabled {
+.gitique-icon.gitique-new {
   color: #6cc644;
+}
+
+.gitique-icon.gitique-clickable {
+  cursor: pointer;
 }
 
 .gitique-enabled .gitique-context .blob-num-addition,

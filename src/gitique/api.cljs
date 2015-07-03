@@ -56,6 +56,5 @@
                      (let [body (js->clj (.getResponseJson (.-target event)) :keywordize-keys true)]
                        (callback body))))]
      (xhr/send url handler "GET" nil headers)))
-  ([repo [from to] callback]
-   (when (and from to)
-     (get-new-commits! (str "https://api.github.com/repos/" repo "/compare/" from "..." to) callback))))
+  ([repo from to callback]
+   (get-new-commits! (str "https://api.github.com/repos/" repo "/compare/" from "..." to) callback)))

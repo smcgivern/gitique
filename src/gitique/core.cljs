@@ -7,8 +7,7 @@
 
 (enable-console-print!)
 
-(def state (atom {:selected-commits '()
-                  :current-pr nil}))
+(def state (atom {:current-pr nil :selected-commit nil :all-commits '()}))
 
 (def pjax-wrapper (util/qs "#js-repo-pjax-container"))
 
@@ -26,10 +25,12 @@
            :commits-change
            (fn [_ _ old new]
              (let [repo (get-in new [:current-pr :repo])
-                   new-commits (:selected-commits new)]
-               (when (not= (:selected-commits old) new-commits)
-                 (update-icons! new-commits)
-                 (api/get-new-commits! repo new-commits update-dom!)))))
+                   new-commit (:selected-commit new)]
+               (when (and (not= (:selected-commit old) new-commit) new-commit)
+                 (let [all-commits (:all-commits new)
+                       new-commits (drop-while #(not= new-commit %) all-commits)]
+                   (update-icons! new-commits)
+                   (api/get-new-commits! repo new-commit (last all-commits) update-dom!))))))
 
 (defn- is? [type] (fn [item] (= (:type item) type)))
 
@@ -72,9 +73,9 @@
         items (map-indexed (annotated-element creator) elements)
         last-reviewer-comment (last (filter (is? "reviewer-comment") items))
         commits (filter (is? "commit-block") items)
-        [reviewed-commits new-commits] (split-with #(< (:index %) (:index last-reviewer-comment)) commits)]
-    {:last-reviewed-commit (-> reviewed-commits last commit-shas last)
-     :new-commits (mapcat commit-shas new-commits)}))
+        last-reviewed-commit-block (take-while #(< (:index %) (:index last-reviewer-comment)) commits)]
+    {:last-reviewed-commit (-> last-reviewed-commit-block last commit-shas last)
+     :all-commits (mapcat commit-shas commits)}))
 
 (defn- diffstat-count
   "Sum the lines in `direction` (added or removed) based on the visible files"
@@ -144,13 +145,23 @@
           (annotate-lines! element file)
           (util/add-class element "gitique-hidden"))))))
 
-(defn- add-icon! [element]
+(defn- select-commit [event]
+  (swap! state assoc :selected-commit (commit-sha (.-parentElement (.-target event)))))
+
+(defn- add-icon! [element clickable]
   (let [parent (.-parentElement (.-parentElement element))]
     (when-not (util/qs ".gitique-icon" parent)
-      (.appendChild parent (dom/createDom "span" #js["octicon octicon-diff-added gitique-icon"])))))
+      (let [icon (dom/createDom "span" #js["octicon octicon-diff-added gitique-icon"])]
+        (when clickable
+          (.addEventListener icon "click" select-commit)
+          (util/add-class icon "gitique-clickable"))
+        (.appendChild parent icon)))))
 
 (defn- add-icons! []
-  (doseq [element (util/qsa ".commit-id")] (add-icon! element)))
+  (let [elements (util/qsa ".commit-id")]
+    (doseq [element (rest (butlast elements))] (add-icon! element true))
+    (when-let [first (first elements)] (add-icon! first false))
+    (when-let [last (last elements)] (add-icon! last false))))
 
 (defn- find-commit
   "Find the link to a commit on the page by its SHA"
@@ -161,18 +172,20 @@
   (let [element (if (string? commit-id)
                   (util/qs ".gitique-icon" (find-commit commit-id))
                   commit-id)]
-    (doseq [class ["gitique-disabled" "gitique-enabled" "gitique-first"]]
+    (doseq [class ["gitique-initial" "gitique-reviewed" "gitique-basis" "gitique-new"]]
       (util/remove-class element class))
     (util/add-class element new-class)
     (.setAttribute element "title" new-title)))
 
 (defn- update-icons! [[from & new]]
+  (let [selector ".gitique-icon"]
+    (update-icon! (util/qs selector) "gitique-initial" "First commit")
+    (doseq [disabled-commit (rest (util/qsa selector))]
+      (update-icon! disabled-commit "gitique-reviewed" "Reviewed commit")))
   (when (and from new)
-    (update-icon! from "gitique-first" "Last reviewed commit")
+    (update-icon! from "gitique-basis" "Last reviewed commit")
     (doseq [new-commit new]
-      (update-icon! new-commit "gitique-enabled" "New commit")))
-  (doseq [disabled-commit (util/qsa ".gitique-icon:not(.gitique-enabled):not(.gitique-first)")]
-    (update-icon! disabled-commit "gitique-disabled" "Reviewed commit")))
+      (update-icon! new-commit "gitique-new" "New commit"))))
 
 (defn- update-dom! [body]
   (annotate-files! (:files body))
@@ -180,10 +193,10 @@
   (update-overall!))
 
 (defn- maybe-show-new [repo]
-  (swap! state assoc :selected-commits
-         (when repo
-           (let [{:keys [last-reviewed-commit new-commits]} (commit-info)]
-             (cons last-reviewed-commit new-commits)))))
+  (if repo
+    (let [{:keys [last-reviewed-commit all-commits]} (commit-info)]
+      (swap! state assoc :selected-commit last-reviewed-commit :all-commits all-commits))
+    (swap! state assoc :selected-commit nil :all-commits nil)))
 
 (defn- main []
   (let [components (string/split js/window.location.pathname "/")

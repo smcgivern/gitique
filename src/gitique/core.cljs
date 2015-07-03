@@ -1,20 +1,18 @@
 (ns gitique.core
   (:require [clojure.string :as string]
-            [goog.net.XhrIo :as xhr]
             [goog.dom :as dom]
+            [gitique.api :as api]
             [gitique.pure :as pure]
             [gitique.util :as util]))
 
 (enable-console-print!)
 
-(def token-key "gitique.github_access_token")
 (def state (atom {:selected-commits '()
                   :current-pr nil}))
 
 (def pjax-wrapper (util/qs "#js-repo-pjax-container"))
 
-(declare add-icons! get-new-commits! update-icons!)
-(declare maybe-show-new)
+(declare add-icons! maybe-show-new update-icons! update-dom!)
 
 (add-watch state
            :pr-change
@@ -31,7 +29,7 @@
                    new-commits (:selected-commits new)]
                (when (not= (:selected-commits old) new-commits)
                  (update-icons! new-commits)
-                 (get-new-commits! repo new-commits)))))
+                 (api/get-new-commits! repo new-commits update-dom!)))))
 
 (defn- is? [type] (fn [item] (= (:type item) type)))
 
@@ -146,62 +144,6 @@
           (annotate-lines! element file)
           (.add (.-classList element) "gitique-hidden"))))))
 
-(defn- update-token! [url event]
-  (let [element (.-target event)
-        new-token (.-value (util/qs "input" element))]
-    (js/localStorage.setItem token-key new-token)
-    (get-new-commits! url)
-    (.add (.-classList element) "gitique-hidden")
-    (.preventDefault event)
-    (.stopPropagation event)))
-
-(defn- request-token! [url]
-  (if-let [token-form (util/qs "#gitique-token-request")]
-    (do
-      (.remove (.-classList token-form) "gitique-hidden")
-      (.add (.-classList (util/qs "input" token-form)) "error"))
-    (let [parent (util/qs "#toc")
-          sibling (util/qs "#toc .toc-diff-stats")
-          current-token (js/localStorage.getItem token-key)
-          input (dom/createDom "input" #js{:type "text"
-                                           :length 50
-                                           :value current-token
-                                           :placeholder "Access token"
-                                           :class (when (> (count current-token) 1) "error")})
-          needs-repo? (util/qs ".repo-private-label")
-          token-link (dom/createDom
-                      "a"
-                      #js{:href "https://help.github.com/articles/creating-an-access-token-for-command-line-use/"}
-                      "access token")
-          explanation (dom/createDom
-                       "span"
-                       nil
-                       "Please enter an " token-link (when needs-repo? " with repo scope") ": ")
-          wrapper (dom/createDom
-                   "form"
-                   #js{:class "right gitique-header-wrapper" :id "gitique-token-request"}
-                   explanation input)]
-      (.addEventListener input "input" #(.remove (.-classList (.-target %)) "error"))
-      (.addEventListener wrapper "submit" (partial update-token! url))
-      (.insertBefore parent wrapper sibling))))
-
-(defn- xhr-handler [event]
-  (if-let [error (not= 200 (.getStatus (.-target event)))]
-    (request-token! (.getLastUri (.-target event)))
-    (let [body (js->clj (.getResponseJson (.-target event)) :keywordize-keys true)]
-      (annotate-files! (:files body))
-      (add-button!)
-      (update-overall!))))
-
-(defn- get-new-commits!
-  ([url]
-   (let [auth-token (js/localStorage.getItem token-key)
-         headers (if auth-token {"Authorization" (str "token " auth-token)} {})]
-     (xhr/send url xhr-handler "GET" nil headers)))
-  ([repo [from to]]
-   (when (and from to)
-     (get-new-commits! (str "https://api.github.com/repos/" repo "/compare/" from "..." to)))))
-
 (defn- add-icon! [element]
   (let [parent (.-parentElement (.-parentElement element))]
     (when-not (util/qs ".gitique-icon" parent)
@@ -232,6 +174,11 @@
       (update-icon! new-commit "gitique-enabled" "New commit")))
   (doseq [disabled-commit (util/qsa ".gitique-icon:not(.gitique-enabled):not(.gitique-first)")]
     (update-icon! disabled-commit "gitique-disabled" "Reviewed commit")))
+
+(defn- update-dom! [body]
+  (annotate-files! (:files body))
+  (add-button!)
+  (update-overall!))
 
 (defn- maybe-show-new [repo]
   (swap! state assoc :selected-commits

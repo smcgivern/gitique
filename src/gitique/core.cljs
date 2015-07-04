@@ -80,7 +80,9 @@
 (defn- diffstat-count
   "Sum the lines in `direction` (added or removed) based on the visible files"
   [gitique-enabled direction]
-  (let [selector (str "#diff .file" (when gitique-enabled ":not(.gitique-hidden)") " .blob-num-" direction)
+  (let [selector (str "#diff .file" (when gitique-enabled ":not(.gitique-hidden)")
+                      " tr" (when gitique-enabled ":not(.gitique-hidden):not(.gitique-context)")
+                      " .blob-num-" direction ":not(.empty-cell)")
         elements (util/qsa selector)]
     (count elements)))
 

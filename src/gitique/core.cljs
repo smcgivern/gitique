@@ -119,9 +119,9 @@
   (let [parent (util/qs "#toc")
         sibling (util/qs "#toc .toc-diff-stats")
         all (dom/createDom "a" #js{:className "btn btn-sm selected" :id "gitique-show-all"}
-                           "All files")
+                           "All commits")
         new (dom/createDom "a" #js{:className "btn btn-sm" :id "gitique-show-new"}
-                           "Since last CR comment")
+                           "Selected commits")
         group (dom/createDom "div" #js["btn-group" "right" "gitique-header-wrapper"] all new)]
     (.addEventListener all "click" (partial set-state! "all") true)
     (.addEventListener new "click" (partial set-state! "new") true)

@@ -11,7 +11,7 @@
 
 (def pjax-wrapper (util/qs "#js-repo-pjax-container"))
 
-(declare add-icons! maybe-show-new update-icons! update-dom!)
+(declare add-icons! maybe-show-new update-icons! reset-classes! update-dom!)
 
 (add-watch state
            :pr-change
@@ -30,6 +30,7 @@
                  (let [all-commits (:all-commits new)
                        new-commits (drop-while #(not= new-commit %) all-commits)]
                    (update-icons! new-commits)
+                   (reset-classes!)
                    (api/get-new-commits! repo new-commit (last all-commits) update-dom!))))))
 
 (defn- is? [type] (fn [item] (= (:type item) type)))
@@ -108,9 +109,7 @@
         to-disable (util/qs (str "#gitique-show-" other-state))]
     (util/add-class to-enable "selected")
     (util/remove-class to-disable "selected")
-    (if (= state "new")
-      (util/add-class pjax-wrapper "gitique-enabled")
-      (util/remove-class pjax-wrapper "gitique-enabled"))
+    ((if (= state "new") util/add-class util/remove-class) pjax-wrapper "gitique-enabled")
     (update-overall!)))
 
 (defn- add-button! []
@@ -126,6 +125,11 @@
     (.addEventListener all "click" (partial set-state! "all") true)
     (.addEventListener new "click" (partial set-state! "new") true)
     (.insertBefore parent group sibling)))
+
+(defn- reset-classes! []
+  (doseq [class ["gitique-hidden" "gitique-context"]]
+    (doseq [element (util/qsa (str "." class))]
+      (util/remove-class element class))))
 
 (defn- annotate-lines! [element file]
   (let [new-lines-list (flatten (:new (-> file :patch pure/parse-diff)))

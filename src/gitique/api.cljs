@@ -57,4 +57,5 @@
                        (callback body))))]
      (xhr/send url handler "GET" nil headers)))
   ([repo from to callback]
-   (get-new-commits! (str "https://api.github.com/repos/" repo "/compare/" from "..." to) callback)))
+   (when-not (= from to)
+     (get-new-commits! (str "https://api.github.com/repos/" repo "/compare/" from "..." to) callback))))

@@ -22,7 +22,14 @@
   ([selector element]
    (.querySelectorAll element selector)))
 
-(defn add-class [element class] (.add (.-classList element) class))
-(defn remove-class [element class] (.remove (.-classList element) class))
+(defn add-class
+  "Add all classes passed to `element`"
+  [element & classes]
+  (doseq [class classes] (.add (.-classList element) class)))
+
+(defn remove-class
+  "Remove all classes passed from `element`"
+  [element & classes]
+  (doseq [class classes] (.remove (.-classList element) class)))
 
 (defn child-text [parent selector] (.-textContent (qs selector parent)))

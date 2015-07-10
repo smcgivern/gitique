@@ -2,7 +2,8 @@
 
 [![Build Status](https://travis-ci.org/smcgivern/gitique.svg?branch=master)](https://travis-ci.org/smcgivern/gitique)
 
-A Chrome extension to make GitHub code review better.
+A Chrome extension to make GitHub code review better. Get it in the
+[Chrome Web Store][webstore].
 
 ## Developing
 
@@ -19,3 +20,5 @@ A Chrome extension to make GitHub code review better.
 
 1. Run `./build prod`. This will use advanced optimizations and no watch the source files.
 2. Update [`dist/manifest.json`](dist/manifest.json) for the new version.
+
+[webstore]: https://chrome.google.com/webstore/detail/gitique/mmjofndmajimmdkeejmmlfljclmghomk

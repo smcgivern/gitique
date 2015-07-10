@@ -1,4 +1,3 @@
 *.jar
 out
 gitique.js
-!dist/gitique.js

@@ -17,7 +17,7 @@
 }
 
 .gitique-icon.gitique-initial {
-  color: #bbb;
+  color: #bdbdbd;
 }
 
 .gitique-icon.gitique-reviewed {
@@ -32,7 +32,11 @@
   color: #6cc644;
 }
 
-.gitique-icon.gitique-clickable {
+.gitique-icon.gitique-head {
+  color: #48a220;
+}
+
+.gitique-icon:not(.gitique-initial):not(.gitique-head) {
   cursor: pointer;
 }
 

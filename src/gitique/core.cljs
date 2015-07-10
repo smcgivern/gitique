@@ -127,9 +127,9 @@
     (.insertBefore parent group sibling)))
 
 (defn- reset-classes! []
-  (doseq [class ["gitique-hidden" "gitique-context"]]
-    (doseq [element (util/qsa (str "." class))]
-      (util/remove-class element class))))
+  (let [classes ["gitique-hidden" "gitique-context"]]
+    (doseq [element (util/qsa (string/join ", " (map #(str "." %) classes)))]
+      (apply util/remove-class element classes))))
 
 (defn- annotate-lines! [element file]
   (let [new-lines-list (flatten (:new (-> file :patch pure/parse-diff)))
@@ -154,20 +154,20 @@
 (defn- select-commit [event]
   (swap! state assoc :selected-commit (commit-sha (.-parentElement (.-target event)))))
 
-(defn- add-icon! [element clickable]
+(defn- add-icon! [element override-class]
   (let [parent (.-parentElement (.-parentElement element))]
     (when-not (util/qs ".gitique-icon" parent)
       (let [icon (dom/createDom "span" #js["octicon octicon-diff-added gitique-icon"])]
-        (when clickable
-          (.addEventListener icon "click" select-commit)
-          (util/add-class icon "gitique-clickable"))
+        (if override-class
+          (util/add-class icon override-class)
+          (.addEventListener icon "click" select-commit))
         (.appendChild parent icon)))))
 
 (defn- add-icons! []
   (let [elements (util/qsa ".commit-id")]
-    (doseq [element (rest (butlast elements))] (add-icon! element true))
-    (when-let [first (first elements)] (add-icon! first false))
-    (when-let [last (last elements)] (add-icon! last false))))
+    (doseq [element (rest (butlast elements))] (add-icon! element nil))
+    (when-let [first (first elements)] (add-icon! first "gitique-initial"))
+    (when-let [last (last elements)] (add-icon! last "gitique-head"))))
 
 (defn- find-commit
   "Find the link to a commit on the page by its SHA"
@@ -178,8 +178,7 @@
   (let [element (if (string? commit-id)
                   (util/qs ".gitique-icon" (find-commit commit-id))
                   commit-id)]
-    (doseq [class ["gitique-initial" "gitique-reviewed" "gitique-basis" "gitique-new"]]
-      (util/remove-class element class))
+    (util/remove-class element "gitique-initial" "gitique-reviewed" "gitique-basis" "gitique-new")
     (util/add-class element new-class)
     (.setAttribute element "title" new-title)))
 

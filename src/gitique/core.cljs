@@ -165,8 +165,7 @@
 
 (defn- add-icons! []
   (let [elements (util/qsa ".commit-id")]
-    (doseq [element (rest (butlast elements))] (add-icon! element nil))
-    (when-let [first (first elements)] (add-icon! first "gitique-initial"))
+    (doseq [element (butlast elements)] (add-icon! element nil))
     (when-let [last (last elements)] (add-icon! last "gitique-head"))))
 
 (defn- find-commit
@@ -178,18 +177,16 @@
   (let [element (if (string? commit-id)
                   (util/qs ".gitique-icon" (find-commit commit-id))
                   commit-id)]
-    (util/remove-class element "gitique-initial" "gitique-reviewed" "gitique-basis" "gitique-new")
+    (util/remove-class element "gitique-reviewed" "gitique-basis" "gitique-new")
     (util/add-class element new-class)
     (.setAttribute element "title" new-title)))
 
 (defn- update-icons! [[from & new]]
-  (let [selector ".gitique-icon"]
-    (update-icon! (util/qs selector) "gitique-initial" "First commit")
-    (doseq [disabled-commit (rest (util/qsa selector))]
-      (update-icon! disabled-commit "gitique-reviewed" "Reviewed commit")))
+  (doseq [disabled-commit (util/qsa ".gitique-icon")]
+    (update-icon! disabled-commit "gitique-reviewed" "Reviewed commit"))
   (when (and from new)
     (update-icon! from "gitique-basis" "Last reviewed commit")
-    (doseq [new-commit new]
+    (doseq [new-commit (butlast new)]
       (update-icon! new-commit "gitique-new" "New commit"))))
 
 (defn- update-dom! [body]

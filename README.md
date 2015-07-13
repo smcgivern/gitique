@@ -1,6 +1,6 @@
 # Gitique
 
-[![Build Status](https://travis-ci.org/smcgivern/gitique.svg?branch=master)](https://travis-ci.org/smcgivern/gitique)
+[![Build status](https://travis-ci.org/smcgivern/gitique.svg?branch=master)][travis]
 
 A Chrome extension to make GitHub code review better. Get it in the
 [Chrome Web Store][webstore].
@@ -43,4 +43,5 @@ who is not the author will have a green icon next to them.
 1. Run `./build prod`. This will use advanced optimizations and no watch the source files.
 2. Update [`dist/manifest.json`](dist/manifest.json) for the new version.
 
+[travis]: https://travis-ci.org/smcgivern/gitique
 [webstore]: https://chrome.google.com/webstore/detail/gitique/mmjofndmajimmdkeejmmlfljclmghomk

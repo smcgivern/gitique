@@ -13,6 +13,8 @@ who is not the author will have a green icon next to them.
 
 ### Icon key
 
+* `#bdbdbd` - very light grey - a commit that is not the HEAD, when there are no review
+  comments.
 * `#999` - light grey - a reviewed commit. If there are comments by reviewers (people not
   the author of the pull request), all but the last commit before the last review comment
   will have this colour. Diffs from these commits are not shown when the Gitique view is

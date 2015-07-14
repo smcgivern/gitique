@@ -16,6 +16,10 @@
   border-color: red;
 }
 
+.gitique-icon {
+  color: #bdbdbd;
+}
+
 .gitique-icon.gitique-reviewed {
   color: #999;
 }

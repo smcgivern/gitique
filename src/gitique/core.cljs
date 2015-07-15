@@ -7,19 +7,17 @@
 
 (enable-console-print!)
 
-(def state (atom {:current-pr nil :selected-commit nil :all-commits '()}))
+(def state (atom {:current-pr nil :selected-commit nil :all-commits '() :files '() :view nil}))
 
 (def pjax-wrapper (util/qs "#js-repo-pjax-container"))
 
-(declare add-icons! maybe-show-new update-icons! reset-classes! update-dom!)
+(declare add-icons! maybe-show-new update-icons! update-dom!)
 
-(add-watch state
-           :pr-change
-           (fn [_ _ old new]
-             (let [new-pr (:current-pr new)]
-               (when (not= (:current-pr old) new-pr)
-                 (add-icons!)
-                 (maybe-show-new (:repo new-pr) (:pr new-pr))))))
+(add-watch state :pr-change (fn [_ _ old new]
+                              (let [new-pr (:current-pr new)]
+                                (when (not= (:current-pr old) new-pr)
+                                  (add-icons!)
+                                  (maybe-show-new (:repo new-pr) (:pr new-pr))))))
 
 (add-watch state
            :commits-change
@@ -30,8 +28,16 @@
                  (let [all-commits (:all-commits new)
                        new-commits (drop-while #(not= new-commit %) all-commits)]
                    (update-icons! new-commits)
-                   (reset-classes!)
-                   (api/get-new-commits! repo new-commit (last all-commits) update-dom!))))))
+                   (api/get-new-commits! repo new-commit (last all-commits)
+                                         #(swap! state assoc :files (:files %))))))))
+
+(add-watch state :files-change (fn [_ _ old new]
+                                 (let [new-files (:files new)]
+                                   (when (not= (:files old) new-files) (update-dom! new-files)))))
+
+(add-watch state :view-change (fn [_ _ old new]
+                                (when (not= (:view old) (:view new))
+                                  (update-dom! (:files new)))))
 
 (defn- is? [type] (fn [item] (= (:type item) type)))
 
@@ -115,13 +121,15 @@
 (defn- add-button! []
   (when-let [existing-buttons (util/qs "#toc .gitique-header-wrapper")]
     (.remove existing-buttons))
-  (let [parent (util/qs "#toc")
+  (let [enabled? (.contains (.-classList pjax-wrapper) "gitique-enabled")
+        parent (util/qs "#toc")
         sibling (util/qs "#toc .toc-diff-stats")
-        all (dom/createDom "a" #js{:className "btn btn-sm selected" :id "gitique-show-all"}
+        all (dom/createDom "a" #js{:className "btn btn-sm" :id "gitique-show-all"}
                            "All commits")
         new (dom/createDom "a" #js{:className "btn btn-sm" :id "gitique-show-new"}
                            "Selected commits")
         group (dom/createDom "div" #js["btn-group" "right" "gitique-header-wrapper"] all new)]
+    (util/add-class (if enabled? new all) "selected")
     (.addEventListener all "click" (partial set-state! "all") true)
     (.addEventListener new "click" (partial set-state! "new") true)
     (.insertBefore parent group sibling)))
@@ -189,8 +197,9 @@
     (doseq [new-commit (butlast new)]
       (update-icon! new-commit "gitique-new" "New commit"))))
 
-(defn- update-dom! [body]
-  (annotate-files! (:files body))
+(defn- update-dom! [files]
+  (reset-classes!)
+  (annotate-files! files)
   (add-button!)
   (update-overall!))
 
@@ -204,8 +213,10 @@
   (let [components (string/split js/window.location.pathname "/")
         repo (str (get components 1) "/" (get components 2))
         pr (get components 4)
-        current-pr (when (= (get components 3) "pull") {:repo repo :pr pr})]
-    (swap! state assoc :current-pr current-pr)))
+        current-pr (when (= (get components 3) "pull") {:repo repo :pr pr})
+        view (if (util/qs ".file-diff-split") :split :unified)]
+    (swap! state assoc :current-pr current-pr)
+    (swap! state assoc :view view)))
 
 (defn ^:export watch
   "Run `main` once, then watch for DOM mutations in the PJAX container and run `main` when

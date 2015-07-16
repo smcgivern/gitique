@@ -38,10 +38,11 @@
 
 (add-watch state :files-change (fn [_ _ old new]
                                  (let [new-files (:files new)]
-                                   (when (not= (:files old) new-files) (update-dom! new-files)))))
+                                   (when (and (not= (:files old) new-files) (not-empty new-files))
+                                     (update-dom! new-files)))))
 
 (add-watch state :view-change (fn [_ _ old new]
-                                (when (not= (:view old) (:view new))
+                                (when (and (not= (:view old) (:view new)) (not-empty (:files new)))
                                   (update-dom! (:files new)))))
 
 (defn- is? [type] (fn [item] (= (:type item) type)))

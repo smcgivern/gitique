@@ -19,7 +19,7 @@ who is not the author will have a green icon next to them.
   the author of the pull request), all but the last commit before the last review comment
   will have this colour. Diffs from these commits are not shown when the Gitique view is
   enabled.
-* `#000` - black - the 'basis commit'. This takes the place of the HEAD of the target
+* `#000` - black - the base commit. This takes the place of the HEAD of the target
   branch when the Gitique view is enabled, so its diff is not shown. By default, it is the
   last commit before the last review comment.
 * `#6cc644` - light green - a reviewed commit. All but the last commit after the last
@@ -27,7 +27,7 @@ who is not the author will have a green icon next to them.
   when the Gitique view is enabled.
 * `#48a220` - dark green - the HEAD of the selected branch in this PR. This diff will
   always be shown when the Gitique view is enabled, and this is the only commit which
-  cannot be selected as the basis commit.
+  cannot be selected as the base commit.
 
 ## Developing
 

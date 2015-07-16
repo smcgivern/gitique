@@ -7,7 +7,12 @@
 
 (enable-console-print!)
 
-(def state (atom {:current-pr nil :selected-commit nil :all-commits '() :files '() :view nil}))
+(def state (atom {:current-pr {} ;; {:repo "smcgivern/gitique" :pr "1"}
+                  :base-commit nil ;; the start point for the diff
+                  :all-commits '() ;; all of the commits found on the page
+                  :files '() ;; the files property of the GitHub API response
+                  :view nil ;; :unified / :split
+                  }))
 
 (def pjax-wrapper (util/qs "#js-repo-pjax-container"))
 
@@ -23,8 +28,8 @@
            :commits-change
            (fn [_ _ old new]
              (let [repo (get-in new [:current-pr :repo])
-                   new-commit (:selected-commit new)]
-               (when (and (not= (:selected-commit old) new-commit) new-commit)
+                   new-commit (:base-commit new)]
+               (when (and (not= (:base-commit old) new-commit) new-commit)
                  (let [all-commits (:all-commits new)
                        new-commits (drop-while #(not= new-commit %) all-commits)]
                    (update-icons! new-commits)
@@ -160,7 +165,7 @@
           (util/add-class element "gitique-hidden"))))))
 
 (defn- select-commit [event]
-  (swap! state assoc :selected-commit (commit-sha (.-parentElement (.-target event)))))
+  (swap! state assoc :base-commit (commit-sha (.-parentElement (.-target event)))))
 
 (defn- add-icon! [element override-class]
   (let [parent (.-parentElement (.-parentElement element))]
@@ -206,8 +211,8 @@
 (defn- maybe-show-new [repo]
   (if repo
     (let [{:keys [last-reviewed-commit all-commits]} (commit-info)]
-      (swap! state assoc :selected-commit last-reviewed-commit :all-commits all-commits))
-    (swap! state assoc :selected-commit nil :all-commits nil)))
+      (swap! state assoc :base-commit last-reviewed-commit :all-commits all-commits))
+    (swap! state assoc :base-commit nil :all-commits nil)))
 
 (defn- main []
   (let [components (string/split js/window.location.pathname "/")

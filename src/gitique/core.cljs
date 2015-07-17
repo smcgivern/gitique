@@ -229,7 +229,7 @@
   it changes"
   []
   (when pjax-wrapper
-    (let [is-valid-mutation? #(and (= (.-type %) "childList") (not-empty (.-addedNodes %)))
+    (let [is-valid-mutation? #(and (= (.-type %) "childList") (seq (.-addedNodes %)))
           observer (js/MutationObserver. #(when (some is-valid-mutation? %) (main)))]
       (.observe observer pjax-wrapper #js{:childList true :attributes false :characterData false})))
   (main))

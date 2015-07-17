@@ -149,8 +149,8 @@
   (let [new-lines-list (flatten (:new (-> file :patch pure/parse-diff)))
         new-lines (zipmap (map :index new-lines-list) new-lines-list)]
     (doseq [line (util/qsa ".diff-table tr" element)]
-      (let [line-number-element (util/qs "[data-line-number]" line)
-            line-number (if line-number-element (.getAttribute line-number-element "data-line-number") "0")]
+      (let [line-number-elements (util/qsa "[data-line-number]" line)
+            line-number (if (empty? line-number-elements) "0" (.getAttribute (last line-number-elements) "data-line-number"))]
         (if-let [new-line (new-lines (js/parseInt line-number 10))]
           (when (= :context (:type new-line)) (util/add-class line "gitique-context"))
           (util/add-class line "gitique-hidden"))))))

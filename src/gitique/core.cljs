@@ -205,9 +205,10 @@
 
 (defn- update-dom! [files]
   (reset-classes!)
-  (annotate-files! files)
-  (add-button!)
-  (update-overall!))
+  (when (util/qs "#toc")
+    (annotate-files! files)
+    (add-button!)
+    (update-overall!)))
 
 (defn- maybe-show-new [repo pr]
   (if (and repo pr)

@@ -1,0 +1,6 @@
+#!/bin/sh -x
+
+./build prod
+pushd dist
+zip -r ../dist.zip .
+popd

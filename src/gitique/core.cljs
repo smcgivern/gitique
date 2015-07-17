@@ -209,8 +209,8 @@
   (add-button!)
   (update-overall!))
 
-(defn- maybe-show-new [repo]
-  (if repo
+(defn- maybe-show-new [repo pr]
+  (if (and repo pr)
     (let [{:keys [last-reviewed-commit all-commits]} (commit-info)]
       (swap! state assoc :base-commit last-reviewed-commit :all-commits all-commits))
     (swap! state assoc :base-commit nil :all-commits nil)))

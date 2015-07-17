@@ -2,7 +2,8 @@
   "manifest_version": 2,
   "name": "Gitique",
   "description": "Make GitHub code review better",
-  "version": "0.0.2",
+  "homepage_url": "https://github.com/smcgivern/gitique",
+  "version": "0.1.0",
   "permissions": [
     "https://github.com/*"
   ],

@@ -2,6 +2,7 @@
   "manifest_version": 2,
   "name": "Gitique (development mode)",
   "description": "Make GitHub code review better",
+  "homepage_url": "https://github.com/smcgivern/gitique",
   "version": "0.1",
   "version_name": "development",
   "permissions": [

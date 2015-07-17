@@ -70,7 +70,9 @@
   (let [classes-contain #(.contains (.-classList item) %)]
     (cond (classes-contain "discussion-commits") "commit-block"
           (classes-contain "discussion-item-assigned") "assigned"
+          (classes-contain "discussion-item-unassigned") "unassigned"
           (classes-contain "discussion-item-labeled") "labeled"
+          (classes-contain "discussion-item-unlabeled") "unlabeled"
           :else (if (= (util/child-text item ".author") creator) "owner-comment" "reviewer-comment"))))
 
 (defn- annotated-element [creator]

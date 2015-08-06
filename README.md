@@ -5,11 +5,46 @@
 A Chrome extension to make GitHub code review better. Get it in the
 [Chrome Web Store][webstore].
 
+## Contents
+
+* [Overview](#overview)
+* [Usage](#usage)
+  * [Icon key](#icon-key)
+* [Developing](#developing)
+  * [Production builds](#production-builds)
+
+## Overview
+
+GitHub's pull requests are fine for code review most of the time, but can get messy for
+long-lived PRs where there are lots of commits touching lots of files, but the new commits
+are making relatively small changes. It's possible to add comments to individual commits,
+but this still has the problems that a) the commit comments show up differently to regular
+PR diff comments and b) sometimes a range of commits have been added to be reviewed, and
+reviewing them one-by-one can be tedious.
+
+The gif below shows what happens with a [demo PR][demo-pr]: some changes were made, a
+reviewer made a comment, and the author added a commit. Choosing to view only the latest
+changes hides all changes in `.gitignore` (as the last commit didn't touch that file) and
+shows only the relevant changes from the latest commit in green (so line 3 of the README
+is no longer marked as a new line).
+
+[![Demo gif](/doc/demo.gif)][demo-pr]
+
 ## Usage
 
 Once installed, Gitique runs on every GitHub page. When it detects that you're on a pull
 request, it looks at the discussion. Any commits made after the last comment by someone
-who is not the author will have a green icon next to them.
+who is not the author will have a green icon next to them. Those commits will have their
+contents kept visible when Gitique is enabled, while the contents of other commits will be
+hidden.
+
+The actual change in behaviour is on the files tab, where Gitique adds a button to view
+only the changes from the selected commits. Any changes for the overall diff which are not
+included in the restricted diff will be hidden.
+
+To change the commits Gitique uses, click on the icon next to a commit SHA. This will set
+the commit as the base commit for the comparison. (This commit's contents will _not_ be
+included in the Gitique view, but all commits following it will be.)
 
 ### Icon key
 
@@ -49,3 +84,4 @@ who is not the author will have a green icon next to them.
 
 [travis]: https://travis-ci.org/smcgivern/gitique
 [webstore]: https://chrome.google.com/webstore/detail/gitique/mmjofndmajimmdkeejmmlfljclmghomk
+[demo-pr]: https://github.com/smcgivern/gitique-examples/pull/2

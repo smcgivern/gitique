@@ -52,22 +52,23 @@ included in the Gitique view, but all commits following it will be.)
 
 ### Icon key
 
-* ![Very light grey](https://rawgit.com/smcgivern/gitique/master/doc/icons/default.svg) -
+* ![Very light grey](https://cdn.rawgit.com/smcgivern/gitique/v0.2.0/doc/icons/default.svg) -
   a commit that is not the HEAD, when there are no review comments.
-* ![Light grey](https://rawgit.com/smcgivern/gitique/master/doc/icons/reviewed.svg) - a
-  reviewed commit. If there are comments by reviewers (people not the author of the pull
+* ![Light grey](https://cdn.rawgit.com/smcgivern/gitique/v0.2.0/doc/icons/reviewed.svg) -
+  a reviewed commit. If there are comments by reviewers (people not the author of the pull
   request), all but the last commit before the last review comment will have this
   colour. Diffs from these commits are not shown when the Gitique view is enabled.
-* ![Black](https://rawgit.com/smcgivern/gitique/master/doc/icons/base.svg) - the base
+* ![Black](https://cdn.rawgit.com/smcgivern/gitique/v0.2.0/doc/icons/base.svg) - the base
   commit. This takes the place of the HEAD of the target branch when the Gitique view is
   enabled, so its diff is not shown. By default, it is the last commit before the last
   review comment.
-* ![Light green](https://rawgit.com/smcgivern/gitique/master/doc/icons/new.svg) - a new
-  commit. All but the last commit after the last reviewer comment are shown in this colour
-  by default, and their diffs are maintained when the Gitique view is enabled.
-* ![Dark green](https://rawgit.com/smcgivern/gitique/master/doc/icons/head.svg) - the HEAD
-  of the selected branch in this PR. This diff will always be shown when the Gitique view
-  is enabled, and this is the only commit which cannot be selected as the base commit.
+* ![Light green](https://cdn.rawgit.com/smcgivern/gitique/v0.2.0/doc/icons/new.svg) - a
+  new commit. All but the last commit after the last reviewer comment are shown in this
+  colour by default, and their diffs are maintained when the Gitique view is enabled.
+* ![Dark green](https://cdn.rawgit.com/smcgivern/gitique/v0.2.0/doc/icons/head.svg) - the
+  HEAD of the selected branch in this PR. This diff will always be shown when the Gitique
+  view is enabled, and this is the only commit which cannot be selected as the base
+  commit.
 
 ## Developing
 

@@ -3,7 +3,7 @@
   "name": "Gitique",
   "description": "Make GitHub code review better",
   "homepage_url": "https://github.com/smcgivern/gitique",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "permissions": [
     "https://github.com/*"
   ],

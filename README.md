@@ -22,6 +22,10 @@ but this still has the problems that a) the commit comments show up differently 
 PR diff comments and b) sometimes a range of commits have been added to be reviewed, and
 reviewing them one-by-one can be tedious.
 
+Gitique enables the files tab of a GitHub PR to be restricted to only a set of the most
+recent commits. By default, it chooses all commits since the last comment by a reviewer
+(anyone who's not the author).
+
 The gif below shows what happens with a [demo PR][demo-pr]: some changes were made, a
 reviewer made a comment, and the author added a commit. Choosing to view only the latest
 changes hides all changes in `.gitignore` (as the last commit didn't touch that file) and

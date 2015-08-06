@@ -8,6 +8,7 @@
 (enable-console-print!)
 
 (def state (atom {:current-pr {} ;; {:repo "smcgivern/gitique" :pr "1"}
+                  :commit-count 0 ;; the number of commit SHAs on the page
                   :base-commit nil ;; the start point for the diff
                   :all-commits '() ;; all of the commits found on the page
                   :files '() ;; the files property of the GitHub API response
@@ -19,8 +20,10 @@
 (declare add-icons! maybe-show-new update-icons! update-dom!)
 
 (add-watch state :pr-change (fn [_ _ old new]
-                              (let [new-pr (:current-pr new)]
-                                (when (not= (:current-pr old) new-pr)
+                              (let [new-pr (:current-pr new)
+                                    new-count (:commit-count new)]
+                                (when (or (not= (:current-pr old) new-pr)
+                                          (and (pos? new-count) (not= (:commit-count old) new-count)))
                                   (add-icons!)
                                   (maybe-show-new (:repo new-pr) (:pr new-pr))))))
 
@@ -225,6 +228,7 @@
         pr (get components 4)
         current-pr (when (= (get components 3) "pull") {:repo repo :pr pr})
         view (if (util/qs ".file-diff-split") :split :unified)]
+    (swap! state assoc :commit-count (count (util/qsa ".commit-id")))
     (swap! state assoc :current-pr current-pr)
     (swap! state assoc :view view)))
 
@@ -235,5 +239,5 @@
   (when pjax-wrapper
     (let [is-valid-mutation? #(and (= (.-type %) "childList") (seq (.-addedNodes %)))
           observer (js/MutationObserver. #(when (some is-valid-mutation? %) (main)))]
-      (.observe observer pjax-wrapper #js{:childList true :attributes false :characterData false})))
+      (.observe observer pjax-wrapper #js{:childList true :attributes false :characterData false :subtree true})))
   (main))

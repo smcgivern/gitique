@@ -73,6 +73,7 @@
           (classes-contain "discussion-item-unassigned") "unassigned"
           (classes-contain "discussion-item-labeled") "labeled"
           (classes-contain "discussion-item-unlabeled") "unlabeled"
+          (classes-contain "discussion-item-ref") "cross-reference"
           :else (if (= (util/child-text item ".author") creator) "owner-comment" "reviewer-comment"))))
 
 (defn- annotated-element [creator]

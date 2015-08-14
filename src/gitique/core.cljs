@@ -22,8 +22,9 @@
 (add-watch state :pr-change (fn [_ _ old new]
                               (let [new-pr (:current-pr new)
                                     new-count (:commit-count new)]
-                                (when (or (not= (:current-pr old) new-pr)
-                                          (and (pos? new-count) (not= (:commit-count old) new-count)))
+                                (when (and new-pr
+                                           (or (not= (:current-pr old) new-pr)
+                                               (and (pos? new-count) (not= (:commit-count old) new-count))))
                                   (add-icons!)
                                   (maybe-show-new (:repo new-pr) (:pr new-pr))))))
 

@@ -25,6 +25,7 @@
                                 (when (and new-pr
                                            (or (not= (:current-pr old) new-pr)
                                                (and (pos? new-count) (not= (:commit-count old) new-count))))
+                                  (util/remove-class pjax-wrapper "gitique-enabled")
                                   (add-icons!)
                                   (maybe-show-new (:repo new-pr) (:pr new-pr))))))
 
@@ -121,14 +122,14 @@
     (set-text! ".toc-diff-stats strong:first-of-type" (str added " additions"))
     (set-text! ".toc-diff-stats strong:last-of-type" (str deleted " deletions"))))
 
-(defn- set-state! [state event]
+(defn- set-gitique-state! [state event]
   (let [enabled? (= state "new")
         other-state (if enabled? "all" "new")
         to-enable (util/qs (str "#gitique-show-" state))
         to-disable (util/qs (str "#gitique-show-" other-state))]
     (util/add-class to-enable "selected")
     (util/remove-class to-disable "selected")
-    ((if (= state "new") util/add-class util/remove-class) pjax-wrapper "gitique-enabled")
+    ((if enabled? util/add-class util/remove-class) pjax-wrapper "gitique-enabled")
     (update-overall!)))
 
 (defn- add-button! []
@@ -143,8 +144,8 @@
                            "Selected commits")
         group (dom/createDom "div" #js["btn-group" "right" "gitique-header-wrapper"] all new)]
     (util/add-class (if enabled? new all) "selected")
-    (.addEventListener all "click" (partial set-state! "all") true)
-    (.addEventListener new "click" (partial set-state! "new") true)
+    (.addEventListener all "click" (partial set-gitique-state! "all") true)
+    (.addEventListener new "click" (partial set-gitique-state! "new") true)
     (.insertBefore parent group sibling)))
 
 (defn- reset-classes! []

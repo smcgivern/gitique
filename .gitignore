@@ -1,4 +1,5 @@
 *.jar
+*.xpi
 out
 gitique.js
 dist/*.zip

@@ -4,3 +4,6 @@
 pushd dist/chrome
 zip -r ../chrome.zip .
 popd
+pushd dist/firefox
+jpm xpi
+popd

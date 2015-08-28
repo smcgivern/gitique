@@ -1,0 +1,14 @@
+{
+  "title": "Gitique",
+  "name": "gitique",
+  "description": "Make GitHub code review better",
+  "homepage": "https://github.com/smcgivern/gitique",
+  "version": "0.2.0",
+  "author": "Sean McGivern",
+  "main": "index",
+  "engines": {
+    "firefox": ">=38.0a1",
+    "fennec": ">=38.0a1"
+  },
+  "license": "MIT"
+}

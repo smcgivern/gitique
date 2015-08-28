@@ -2,7 +2,7 @@
 
 [![Build status](https://travis-ci.org/smcgivern/gitique.svg?branch=master)][travis]
 
-A Chrome extension to make GitHub code review better. Get it in the
+A browser extension to make GitHub code review better. Get it in the
 [Chrome Web Store][webstore].
 
 ## Contents
@@ -76,17 +76,24 @@ included in the Gitique view, but all commits following it will be.)
 2. From the root of the cloned repo, run `./build`. This will download the ClojureScript
    compiler and run it on the source, producing the file `gitique.js`. This script will
    watch for changes in the source.
-3. Go to [chrome://extensions/](chrome://extensions/) and choose to load an unpacked
-   extension, then point to the [`src/chrome`](src/chrome) in the cloned repo.
+3. This depends on the browser.
+   1. Chrome: go to [chrome://extensions/](chrome://extensions/) and choose to load an
+      unpacked extension, then point to the [`src/chrome`](src/chrome) directory in the
+      cloned repo.
+   2. Firefox: install `jpm` (`npm install -g jpm`) first, then from
+      [`src/firefox`](src/firefox) do `jpm run` and use the blank profile that generates.
+      Alternatively, run `jpm xpi` and then choose to install an add-on from a file at
+      [about:addons](about:addons).
 4. To run the tests, run `./build test`. This requires [PhantomJS](http://phantomjs.org/)
    version 2 to be on the path as `phantomjs`.
 
 ### Production builds
 
-1. Update [`dist/chrome/manifest.json`](dist/chrome/manifest.json) for the new version.
+1. Update [`dist/chrome/manifest.json`](dist/chrome/manifest.json) and
+   [`dist/firefox/package.json`](dist/firefox/package.json) for the new version.
 2. Run `./release`. This will build using advanced optimizations, then package
-   `dist/chrome` into `dist/chrome.zip`, ready for uploading to the store.
-
+   `dist/chrome` into `dist/chrome.zip`, and `dist/firefox` into
+   `dist/firefox/@gitique-$version.xpi`.
 
 [travis]: https://travis-ci.org/smcgivern/gitique
 [webstore]: https://chrome.google.com/webstore/detail/gitique/mmjofndmajimmdkeejmmlfljclmghomk

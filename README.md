@@ -77,15 +77,16 @@ included in the Gitique view, but all commits following it will be.)
    compiler and run it on the source, producing the file `gitique.js`. This script will
    watch for changes in the source.
 3. Go to [chrome://extensions/](chrome://extensions/) and choose to load an unpacked
-   extension, then point to the cloned repo.
+   extension, then point to the [`src/chrome`](src/chrome) in the cloned repo.
 4. To run the tests, run `./build test`. This requires [PhantomJS](http://phantomjs.org/)
    version 2 to be on the path as `phantomjs`.
 
 ### Production builds
 
-1. Run `./build prod`. This will use advanced optimizations and not watch the source
-   files.
-2. Update [`dist/manifest.json`](dist/manifest.json) for the new version.
+1. Update [`dist/chrome/manifest.json`](dist/chrome/manifest.json) for the new version.
+2. Run `./release`. This will build using advanced optimizations, then package
+   `dist/chrome` into `dist/chrome.zip`, ready for uploading to the store.
+
 
 [travis]: https://travis-ci.org/smcgivern/gitique
 [webstore]: https://chrome.google.com/webstore/detail/gitique/mmjofndmajimmdkeejmmlfljclmghomk

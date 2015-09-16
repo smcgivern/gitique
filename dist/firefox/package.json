@@ -3,7 +3,7 @@
   "name": "gitique",
   "description": "Make GitHub code review better",
   "homepage": "https://github.com/smcgivern/gitique",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "author": "Sean McGivern",
   "main": "index",
   "engines": {

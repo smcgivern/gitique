@@ -3,7 +3,7 @@
 [![Build status](https://travis-ci.org/smcgivern/gitique.svg?branch=master)][travis]
 
 A browser extension to make GitHub code review better. Get it in the
-[Chrome Web Store][webstore].
+[Chrome Web Store][webstore] or at [addons.mozilla.org][amo].
 
 ## Contents
 
@@ -97,4 +97,5 @@ included in the Gitique view, but all commits following it will be.)
 
 [travis]: https://travis-ci.org/smcgivern/gitique
 [webstore]: https://chrome.google.com/webstore/detail/gitique/mmjofndmajimmdkeejmmlfljclmghomk
+[amo]: https://addons.mozilla.org/en-GB/firefox/addon/gitique/
 [demo-pr]: https://github.com/smcgivern/gitique-examples/pull/2

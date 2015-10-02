@@ -1,5 +1,7 @@
 *.jar
+*.org
 *.xpi
+.nrepl*
 out
 gitique.js
 dist/*.zip

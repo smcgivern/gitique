@@ -84,8 +84,14 @@ included in the Gitique view, but all commits following it will be.)
       [`src/firefox`](src/firefox) do `jpm run` and use the blank profile that generates.
       Alternatively, run `jpm xpi` and then choose to install an add-on from a file at
       [about:addons](about:addons).
-4. To run the tests, run `./build test`. This requires [PhantomJS](http://phantomjs.org/)
-   version 2 to be on the path as `phantomjs`.
+4. To run the unit tests, run `./build test`. This requires
+   [PhantomJS](http://phantomjs.org/) version 2 to be on the path as `phantomjs`. It will
+   watch the `test` and `src` directories and run the tests on the built output.
+5. To run the Webdriver tests, install [boot](http://boot-clj.com/) and run
+   [`./selenium.clj`](selenium.clj). This will run some basic tests against the
+   [gitique-examples repo][examples] in Chrome and Firefox. A
+   [production build](#production-builds) is needed for these, as the generated XPI is
+   loaded by Firefox for the tests.
 
 ### Production builds
 
@@ -99,3 +105,4 @@ included in the Gitique view, but all commits following it will be.)
 [webstore]: https://chrome.google.com/webstore/detail/gitique/mmjofndmajimmdkeejmmlfljclmghomk
 [amo]: https://addons.mozilla.org/en-GB/firefox/addon/gitique/
 [demo-pr]: https://github.com/smcgivern/gitique-examples/pull/2
+[examples]: https://github.com/smcgivern/gitique-examples

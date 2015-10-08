@@ -4,4 +4,5 @@
 .nrepl*
 out
 gitique.js
+gitique.js.map
 dist/*.zip

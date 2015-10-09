@@ -3,5 +3,5 @@ install:
   - mkdir phantomjs
   - wget https://s3.amazonaws.com/travis-phantomjs/phantomjs-2.0.0-ubuntu-12.04.tar.bz2 -O phantomjs/phantomjs-2.0.0-ubuntu-12.04.tar.bz2
   - tar -xvf phantomjs/phantomjs-2.0.0-ubuntu-12.04.tar.bz2 -C phantomjs
-  - ./build test_once
-script: phantomjs/phantomjs test/runner.js
+  - export PATH=phantomjs:$PATH
+script: make ci

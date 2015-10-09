@@ -73,7 +73,7 @@ included in the Gitique view, but all commits following it will be.)
 ## Developing
 
 1. Clone this repo.
-2. From the root of the cloned repo, run `./build`. This will download the ClojureScript
+2. From the root of the cloned repo, run `make`. This will download the ClojureScript
    compiler and run it on the source, producing the file `gitique.js`. This script will
    watch for changes in the source.
 3. This depends on the browser.
@@ -84,20 +84,20 @@ included in the Gitique view, but all commits following it will be.)
       [`src/firefox`](src/firefox) do `jpm run` and use the blank profile that generates.
       Alternatively, run `jpm xpi` and then choose to install an add-on from a file at
       [about:addons](about:addons).
-4. To run the unit tests, run `./build test`. This requires
+4. To run the unit tests, run `make test`. This requires
    [PhantomJS](http://phantomjs.org/) version 2 to be on the path as `phantomjs`. It will
-   watch the `test` and `src` directories and run the tests on the built output.
-5. To run the Webdriver tests, install [boot](http://boot-clj.com/) and run
-   [`./selenium.clj`](selenium.clj). This will run some basic tests against the
-   [gitique-examples repo][examples] in Chrome and Firefox. A
-   [production build](#production-builds) is needed for these, as the generated XPI is
-   loaded by Firefox for the tests.
+   watch the `test` and `src` directories and run the tests on the built output. `make ci`
+   will compile, run the tests, and exit without watching.
+5. To run the Webdriver tests, install [boot](http://boot-clj.com/) and run `make
+   selenium`. This will run some basic tests against the [gitique-examples repo][examples]
+   in Chrome and Firefox. A [production build](#production-builds) is needed for these, as
+   the generated XPI is loaded by Firefox for the tests.
 
 ### Production builds
 
 1. Update [`dist/chrome/manifest.json`](dist/chrome/manifest.json) and
    [`dist/firefox/package.json`](dist/firefox/package.json) for the new version.
-2. Run `./release`. This will build using advanced optimizations, then package
+2. Run `make release`. This will build using advanced optimizations, then package
    `dist/chrome` into `dist/chrome.zip`, and `dist/firefox` into
    `dist/firefox/@gitique-$version.xpi`.
 

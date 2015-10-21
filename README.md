@@ -34,6 +34,8 @@ is no longer marked as a new line).
 
 [![Demo gif](/doc/demo.gif)][demo-pr]
 
+For more on this subject, see [improving GitHub code review][rs-blog-post].
+
 ## Usage
 
 Once installed, Gitique runs on every GitHub page. When it detects that you're on a pull
@@ -106,3 +108,4 @@ included in the Gitique view, but all commits following it will be.)
 [amo]: https://addons.mozilla.org/en-GB/firefox/addon/gitique/
 [demo-pr]: https://github.com/smcgivern/gitique-examples/pull/2
 [examples]: https://github.com/smcgivern/gitique-examples
+[rs-blog-post]: http://eng.rightscale.com/2015/10/21/improving-github-code-review.html

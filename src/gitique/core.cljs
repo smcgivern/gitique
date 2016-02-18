@@ -174,12 +174,21 @@
           (util/add-class element "gitique-hidden"))))))
 
 (defn- select-commit [event]
-  (swap! state assoc :base-commit (commit-sha (.-parentElement (.-target event)))))
+  (swap! state assoc :base-commit (commit-sha (.-parentElement (.-currentTarget event)))))
 
 (defn- add-icon! [element override-class]
   (let [parent (.-parentElement (.-parentElement element))]
     (when-not (util/qs ".gitique-icon" parent)
-      (let [icon (dom/createDom "span" #js["octicon octicon-diff-added gitique-icon"])]
+      ;; This is kind of a hack, but it works fine for now. If this extension used more
+      ;; than one icon then it would be better to include them as actual files.
+      (let [svg-ns "http://www.w3.org/2000/svg"
+            svg (js/document.createElementNS svg-ns "svg")
+            path (js/document.createElementNS svg-ns "path")
+            icon (dom/createDom "span" #js["gitique-icon"] svg)]
+        (.setAttributeNS svg nil "width" "14")
+        (.setAttributeNS svg nil "height" "16")
+        (.setAttributeNS path nil "d" "M13 1H1C0.45 1 0 1.45 0 2v12c0 0.55 0.45 1 1 1h12c0.55 0 1-0.45 1-1V2c0-0.55-0.45-1-1-1z m0 13H1V2h12v12zM6 9H3V7h3V4h2v3h3v2H8v3H6V9z")
+        (.appendChild svg path)
         (if override-class
           (util/add-class icon override-class)
           (.addEventListener icon "click" select-commit))

@@ -17,23 +17,28 @@
 }
 
 .gitique-icon {
-  color: #bdbdbd;
+  fill: #bdbdbd;
+}
+
+.gitique-icon svg {
+  display: inline-block;
+  vertical-align: bottom;
 }
 
 .gitique-icon.gitique-reviewed {
-  color: #999;
+  fill: #999;
 }
 
 .gitique-icon.gitique-basis {
-  color: #000;
+  fill: #000;
 }
 
 .gitique-icon.gitique-new {
-  color: #6cc644;
+  fill: #6cc644;
 }
 
 .gitique-icon.gitique-head {
-  color: #48a220;
+  fill: #48a220;
 }
 
 .gitique-icon:not(.gitique-initial):not(.gitique-head) {

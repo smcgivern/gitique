@@ -1,5 +1,7 @@
 ## next
 
+## [0.4.0][0.4.0] - 2016-02-18
+
 * Embed SVG icon directly as GitHub no longer uses an icon font.
 
 ## [0.3.0][0.3.0] - 2015-09-02

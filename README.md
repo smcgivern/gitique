@@ -1,9 +1,12 @@
 # Gitique
 
-[![Build status](https://travis-ci.org/smcgivern/gitique.svg?branch=master)][travis]
+## This project is deprecated
 
-A browser extension to make GitHub code review better. Get it in the
-[Chrome Web Store][webstore] or at [addons.mozilla.org][amo].
+GitHub [added this feature][ghblog], along with many other excellent code review tools!
+
+- - -
+
+[![Build status](https://travis-ci.org/smcgivern/gitique.svg?branch=master)][travis]
 
 ## Contents
 
@@ -104,8 +107,7 @@ included in the Gitique view, but all commits following it will be.)
    `dist/firefox/@gitique-$version.xpi`.
 
 [travis]: https://travis-ci.org/smcgivern/gitique
-[webstore]: https://chrome.google.com/webstore/detail/gitique/mmjofndmajimmdkeejmmlfljclmghomk
-[amo]: https://addons.mozilla.org/en-GB/firefox/addon/gitique/
 [demo-pr]: https://github.com/smcgivern/gitique-examples/pull/2
 [examples]: https://github.com/smcgivern/gitique-examples
 [rs-blog-post]: http://eng.rightscale.com/2015/10/21/improving-github-code-review.html
+[ghblog]: https://github.com/blog/2123-more-code-review-tools
